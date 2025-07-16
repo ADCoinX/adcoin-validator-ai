@@ -1,0 +1,23 @@
+
+<!doctype html>
+<html>
+<head>
+  <title>Validation Result</title>
+  <style>
+    body { font-family: Arial; background: #0b0c2a; color: white; text-align: center; padding: 40px; }
+    .result-box { background: #1e1f3f; padding: 30px; border-radius: 8px; display: inline-block; }
+    .score { font-size: 40px; color: #00ffcc; }
+  </style>
+</head>
+<body>
+  <img src="/static/adcoin_logo.png" width="120" />
+  <h1>Validation Result</h1>
+  <div class="result-box">
+    <p><strong>Input:</strong> {{ query }}</p>
+    <p class="score">Risk Score: {{ score }}</p>
+    <h2>{{ result }}</h2>
+  </div>
+  <br><br>
+  <a href="/" style="color:#00ffcc;">Check another</a>
+</body>
+</html>
