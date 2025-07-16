@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: adcoin-validator
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
