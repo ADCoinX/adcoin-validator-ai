@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADCoin Wallet Validator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; padding: 20px; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        img { width: 100px; margin-bottom: 20px; }
+        input[type=text] { width: 100%; padding: 10px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #ffc107; border: none; cursor: pointer; }
+        .result { margin-top: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/static/logo.png" alt="ADCoin Logo">
+        <h2>Wallet Validator</h2>
+        <form method="post">
+            <input type="text" name="wallet" placeholder="Enter wallet address" required>
+            <button type="submit">Validate</button>
+        </form>
+        {% if result %}
+            <div class="result">{{ result }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>
