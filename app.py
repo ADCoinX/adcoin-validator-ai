@@ -7,6 +7,13 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "ADCoin Validator is Live"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
+
 ETHERSCAN_API_KEY = os.getenv('ETHERSCAN_API_KEY')
 LOG_FILE = 'validation_log.json'
 
