@@ -1,7 +1,7 @@
 
-import requests
+import os
 
-ETHERSCAN_API = "QZ2IEY7FFB5DVPMCYA5FCH2BQIYG4QSTHH"
+ETHERSCAN_API = os.getenv("ETHERSCAN_API")
 
 def validate_wallet(address):
     if address.startswith("0x"):
