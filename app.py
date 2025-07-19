@@ -243,10 +243,9 @@ class ValidatorApp:
         self.validation_text.delete(1.0, "end")
 
         if is_valid:
-            self.validation_text.insert("end", f"✔️ VALID {coin_type} ADDRESS
-", "valid")
-            self.validation_text.insert("end", f"
-Address: {address}
+self.validation_text.insert("end", f"✔️ VALID {coin_type} ADDRESS\n")
+
+            self.validation_text.insert("end", f"Address: {address}
 ")
             self.validation_text.insert("end", f"Network: {coin_type}
 ")
@@ -255,8 +254,7 @@ Address: {address}
         else:
             self.validation_text.insert("end", f"❌ INVALID ADDRESS
 ", "invalid")
-            self.validation_text.insert("end", f"
-Error: {valid_msg}
+self.validation_text.insert("end", f"Error: {valid_msg}\n")
 ")
             self.validation_text.tag_config("invalid", foreground="red")
 
@@ -352,5 +350,8 @@ def main():
     app = ValidatorApp(root)
     root.mainloop()
 
+import os
+
 if __name__ == "__main__":
-    main()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
