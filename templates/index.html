@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ADCoin Validator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0e0e0e;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+            color: #00ffe5;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        img {
+            width: 120px;
+            margin: 20px auto;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background-color: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #00ffe5;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='adcoin_logo.png') }}" alt="ADCoin Logo">
+        <h1>ADCOIN WALLET VALIDATOR</h1>
+        <p>Scan wallet for balance, tokens, AI risk scoring</p>
+        <form method="POST">
+            <input type="text" name="wallet" placeholder="Enter Wallet Address" required>
+            <button type="submit">Validate</button>
+        </form>
+        {% if result %}
+            <div class="result">
+                <h3>Wallet Info:</h3>
+                <pre>{{ result }}</pre>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
