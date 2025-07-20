@@ -1,141 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ADC CRYPTOGUARD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            color: #fff;
-            background-image: url('/static/background.jpg'); /* Letak gambar background kau di sini */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
+  <meta charset="UTF-8">
+  <title>ADC CRYPTOGUARD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(-45deg, #0f0f0f, #1f1f2e, #0a0a23, #181818);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+    }
 
-        .container {
-            padding: 20px;
-            background-color: rgba(0,0,0,0.7);
-            max-width: 600px;
-            margin: 50px auto;
-            border-radius: 10px;
-        }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
 
-        .logo {
-            width: 120px;
-            display: block;
-            margin: 0 auto 10px auto;
-        }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 40px 20px;
+      text-align: center;
+    }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
+    .logo {
+      width: 100px;
+      margin-bottom: 10px;
+    }
 
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 20px;
+      color: #00ffc8;
+    }
 
-        input[type="text"] {
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            width: 100%;
-        }
+    input[type="text"] {
+      width: 90%;
+      padding: 12px;
+      font-size: 16px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+    }
 
-        input[type="submit"] {
-            padding: 12px;
-            font-size: 16px;
-            background-color: #00bcd4;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-        }
+    button {
+      padding: 10px 25px;
+      font-size: 16px;
+      background-color: #00ffc8;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-        .data-block {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
+    .result {
+      margin-top: 30px;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 10px;
+    }
 
-        .risk-high {
-            color: red;
-            font-weight: bold;
-        }
+    .tx {
+      text-align: left;
+      font-size: 14px;
+      margin-top: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 5px;
+    }
 
-        .risk-medium {
-            color: orange;
-            font-weight: bold;
-        }
+    .disclaimer {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 30px;
+    }
 
-        .risk-low {
-            color: lime;
-            font-weight: bold;
-        }
-
-        .disclaimer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #ccc;
-            text-align: center;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                margin: 20px;
-            }
-        }
-    </style>
+    .networks {
+      font-size: 13px;
+      margin-top: 10px;
+      color: #88e7ff;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <img src="/static/adcoin_logo.png" alt="ADCoin Logo" class="logo">
-        <h1>ADC CRYPTOGUARD</h1>
+  <div class="container">
+    <img src="/static/adcoin_logo.png" alt="ADCoin Logo" class="logo">
+    <h1>ADC CRYPTOGUARD</h1>
 
-        <form method="POST">
-            <input type="text" name="wallet" placeholder="Enter Wallet Address..." required>
-            <input type="submit" value="Validate">
-        </form>
+    <form method="POST">
+      <input type="text" name="wallet" placeholder="Enter wallet address..." required>
+      <br>
+      <button type="submit">Validate Wallet</button>
+    </form>
 
-        {% if data %}
-        <div class="data-block">
-            <p><strong>Wallet Address:</strong> {{ data.address }}</p>
-            <p><strong>Chain:</strong> {{ data.chain }}</p>
-            <p><strong>Balance:</strong> {{ data.balance }}</p>
-            <p><strong>AI Risk Score:</strong> 
-                {% if data.risk_score == "High" %}
-                    <span class="risk-high">{{ data.risk_score }}</span>
-                {% elif data.risk_score == "Medium" %}
-                    <span class="risk-medium">{{ data.risk_score }}</span>
-                {% else %}
-                    <span class="risk-low">{{ data.risk_score }}</span>
-                {% endif %}
-            </p>
+    {% if result %}
+    <div class="result">
+      <p><strong>Wallet:</strong> {{ result.wallet }}</p>
+      <p><strong>Network:</strong> {{ result.network }}</p>
+      <p><strong>Balance:</strong> {{ result.balance }}</p>
+      <p><strong>AI Risk Score:</strong> {{ result.risk }}</p>
 
-            <p><strong>Latest Transactions:</strong></p>
-            <ul>
-                {% for tx in data.transactions %}
-                    <li>{{ tx | safe }}</li>
-                {% endfor %}
-            </ul>
-
-            {% if data.error %}
-                <p style="color: red;"><strong>Error:</strong> {{ data.error }}</p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <p class="disclaimer">
-            ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
-        </p>
+      {% if result.transactions %}
+        <h3>Last 10 Transactions:</h3>
+        {% for tx in result.transactions %}
+          <div class="tx">
+            <p><strong>Hash:</strong> {{ tx.hash }}</p>
+            {% if tx.from %}<p>From: {{ tx.from }}</p>{% endif %}
+            {% if tx.to %}<p>To: {{ tx.to }}</p>{% endif %}
+            {% if tx.value %}<p>Amount: {{ tx.value }}</p>{% endif %}
+            {% if tx.time %}<p>Time: {{ tx.time }}</p>{% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
+    {% endif %}
+
+    <div class="disclaimer">
+      ⚠️ Disclaimer: This tool is for informational purposes only.<br>
+      Risk analysis is based on public data. Final decisions are the responsibility of the user.
+    </div>
+
+    <div class="networks">
+      Supported Networks: BTC, ETH, BSC, XRP, TRON, SOL
+    </div>
+  </div>
 </body>
 </html>
