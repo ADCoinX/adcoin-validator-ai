@@ -1,43 +1,106 @@
+/* Global Reset & Base */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: url("/static/security-bg.jpg") no-repeat center center fixed;
-    background-size: cover;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(-45deg, #0f0f0f, #1f1f2e, #0a0a23, #181818);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
     color: white;
-    animation: gradientBG 15s ease infinite;
-}
-
-@keyframes gradientBG {
-    0% { filter: brightness(1); }
-    50% { filter: brightness(1.2); }
-    100% { filter: brightness(1); }
-}
-
-.container {
-    max-width: 800px;
-    margin: auto;
-    padding: 40px 20px;
     text-align: center;
+    padding: 20px;
 }
 
+/* Background Animation */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Logo */
+.logo {
+    max-width: 90px;
+    height: auto;
+    margin-bottom: 15px;
+    animation: zoomIn 1.2s ease-out;
+}
+
+/* Logo Animation */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Wallet Form */
+form {
+    margin: 20px auto;
+    max-width: 450px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+/* Input box */
 input[type="text"] {
-    padding: 10px;
-    width: 80%;
-    max-width: 400px;
-    border-radius: 5px;
+    width: 100%;
+    padding: 12px;
     border: none;
-    margin-bottom: 20px;
+    border-radius: 6px;
+    font-size: 16px;
 }
 
+/* Submit button */
 button {
-    padding: 10px 20px;
-    background-color: #00ffcc;
-    color: black;
+    margin-top: 15px;
+    padding: 10px 30px;
+    font-size: 16px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
+    background-color: #14ffec;
+    color: #000;
     cursor: pointer;
+    transition: box-shadow 0.3s ease;
 }
 
 button:hover {
-    background-color: #00ccaa;
+    box-shadow: 0 0 12px #14ffec;
+}
+
+/* Results Section */
+.result {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+}
+
+/* Disclaimer */
+.disclaimer {
+    margin-top: 30px;
+    font-size: 13px;
+    color: #ccc;
+}
+
+/* Supported Network Footer */
+.networks {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 600px) {
+    form {
+        width: 90%;
+    }
+    .logo {
+        max-width: 70px;
+    }
 }
