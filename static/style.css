@@ -1,9 +1,15 @@
-background: linear-gradient(-45deg, #0f0f0f, #1f1f2e, #0a0a23, #181818);
-background-size: 400% 400%;
-animation: gradientBG 15s ease infinite;
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: url('/static/images/security-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    animation: pulse 20s infinite ease-in-out;
+    color: white;
+}
 
-@keyframes gradientBG {
-  0% {background-position: 0% 50%;}
-  50% {background-position: 100% 50%;}
-  100% {background-position: 0% 50%;}
+@keyframes pulse {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.1); }
+    100% { filter: brightness(1); }
 }
