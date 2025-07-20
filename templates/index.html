@@ -1,39 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>ADC CRYPTOGUARD</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <title>ADC CRYPTOGUARD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <img src="{{ url_for('static', filename='images/adcoin_logo.png') }}" alt="ADCOIN" class="logo">
-        <h1>ADC CRYPTOGUARD</h1>
-        <form method="post">
-            <input type="text" name="wallet" placeholder="Enter wallet address...">
-            <button type="submit">Validate Wallet</button>
-        </form>
-
-        {% if wallet %}
-        <div class="results">
-            <p><strong>Wallet:</strong> {{ wallet }}</p>
-            <p><strong>Network:</strong> {{ network }}</p>
-            <p><strong>Balance:</strong> {{ balance }}</p>
-            <p><strong>AI Risk Score:</strong> {{ risk_score }}</p>
-            <h3>Last 10 Transactions:</h3>
-            <ul>
-                {% for tx in transactions %}
-                <li>{{ tx }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        <p class="disclaimer">
-            ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
-        </p>
-        <p class="networks">Supported Networks: BTC, ETH, BSC, XRP, TRON, SOL</p>
-    </div>
+  <div class="overlay"></div>
+  <div class="container">
+    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
+    <h1>ADC CRYPTOGUARD</h1>
+    <form method="POST" action="/validate">
+      <input type="text" name="wallet" placeholder="Enter wallet address..." required />
+      <button type="submit">Validate Wallet</button>
+    </form>
+    <p class="disclaimer">
+      ⚠️ Disclaimer: This tool is for informational purposes only. <br>
+      Risk analysis is based on public data. Final decisions are the responsibility of the user.
+    </p>
+    <p class="networks">
+      Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL</strong>
+    </p>
+  </div>
 </body>
 </html>
