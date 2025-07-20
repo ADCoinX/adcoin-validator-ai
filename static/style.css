@@ -6,6 +6,7 @@ body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
+  text-align: center;
 }
 
 @keyframes bgflow {
@@ -14,23 +15,49 @@ body {
   100% {background-position: 0% 50%;}
 }
 
-h1, h2, h3, h4, h5 {
-  text-shadow: 1px 1px 4px black;
+.container {
+  max-width: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: 110px; /* +20% dari asal */
+  margin-bottom: 20px;
+  animation: glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    filter: drop-shadow(0 0 4px #ffcc00);
+  }
+  to {
+    filter: drop-shadow(0 0 15px #ffcc00);
+  }
+}
+
+h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 3px black;
 }
 
 input[type="text"] {
   padding: 12px;
-  border-radius: 5px;
-  width: 100%;
+  border-radius: 6px;
+  width: 60%;  /* Kecilkan width dari 100% → 60% */
+  max-width: 400px;
   border: 1px solid #444;
   background: #111;
   color: white;
   font-size: 1rem;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 input[type="text"]::placeholder {
-  color: #888;
+  color: #aaa;
 }
 
 .btn-validate {
@@ -41,63 +68,32 @@ input[type="text"]::placeholder {
   font-size: 1rem;
   border: none;
   border-radius: 5px;
-  margin-top: 10px;
+  margin-top: 12px;
   transition: all 0.3s ease;
 }
 
 .btn-validate:hover {
-  background-color: #ffca2c;
+  background-color: #ffdb4d;
   transform: scale(1.05);
 }
 
-.validator-box {
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 0 10px rgba(255,255,255,0.1);
-}
-
-.tx-list {
-  font-size: 0.9rem;
-  background-color: rgba(255,255,255,0.03);
-  padding: 15px;
-  border-radius: 10px;
-  margin-top: 20px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.risk-safe {
-  color: #00ff6a;
-  font-weight: bold;
-}
-
-.risk-medium {
-  color: #ffc107;
-  font-weight: bold;
-}
-
-.risk-high {
-  color: #ff4444;
-  font-weight: bold;
-}
-
 .supported {
-  margin-top: 40px;
   font-size: 0.95rem;
+  margin-top: 35px;
   color: #ccc;
 }
 
-.logo {
-  width: 92px;
-  animation: glow 3s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    filter: drop-shadow(0 0 4px #ffcc00);
+/* Responsive untuk mobile */
+@media (max-width: 600px) {
+  input[type="text"] {
+    width: 90%;
   }
-  to {
-    filter: drop-shadow(0 0 15px #ffcc00);
+
+  .logo {
+    width: 85px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
   }
 }
