@@ -1,107 +1,120 @@
-body {
-  background: linear-gradient(270deg, #020202, #0d0f1d, #1a1e2e);
-  background-size: 600% 600%;
-  animation: bgflow 20s ease infinite;
-  color: white;
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADC CryptoGuard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://i.ibb.co/FqznqXr/klcc-bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+    }
 
-@keyframes bgflow {
-  0% {background-position: 0% 50%;}
-  50% {background-position: 100% 50%;}
-  100% {background-position: 0% 50%;}
-}
+    .logo {
+      margin-top: 30px;
+    }
 
-.container {
-  max-width: 100%;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    .logo img {
+      width: 120px;
+    }
 
-.logo {
-  width: 110px; /* +20% */
-  margin-bottom: 20px;
-  animation: glow 3s ease-in-out infinite alternate;
-}
+    h1 {
+      font-size: 2.8em;
+      margin: 10px 0 5px;
+    }
 
-@keyframes glow {
-  from {
-    filter: drop-shadow(0 0 4px #ffcc00);
-  }
-  to {
-    filter: drop-shadow(0 0 15px #ffcc00);
-  }
-}
+    .subtitle {
+      font-size: 1.2em;
+      color: #cccccc;
+      margin-bottom: 30px;
+    }
 
-h1 {
-  font-size: 1.8rem;
-  margin-bottom: 10px;
-  text-shadow: 1px 1px 3px black;
-}
+    .validator-box {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 20px 30px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
 
-input[type="text"] {
-  padding: 12px;
-  border-radius: 6px;
-  width: 60%;  /* kurang 40% dari full */
-  max-width: 400px;
-  border: 1px solid #444;
-  background: #111;
-  color: white;
-  font-size: 1rem;
-  margin-top: 15px;
-}
+    input[type="text"] {
+      width: 60%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      max-width: 400px;
+    }
 
-input[type="text"]::placeholder {
-  color: #aaa;
-}
+    button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      font-size: 16px;
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-.btn-validate {
-  padding: 10px 30px;
-  background-color: #ffc107;
-  color: black;
-  font-weight: bold;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  margin-top: 12px;
-  transition: all 0.3s ease;
-}
+    .networks {
+      margin-top: 20px;
+      font-size: 0.95em;
+      color: #cccccc;
+    }
 
-.btn-validate:hover {
-  background-color: #ffdb4d;
-  transform: scale(1.05);
-}
+    .disclaimer {
+      margin-top: 40px;
+      font-size: 0.85em;
+      color: #bbbbbb;
+    }
 
-.supported {
-  font-size: 0.95rem;
-  margin-top: 35px;
-  color: #ccc;
-}
+    @media screen and (max-width: 600px) {
+      h1 {
+        font-size: 2em;
+      }
 
-.disclaimer {
-  font-size: 0.8rem;
-  margin-top: 25px;
-  color: #888;
-  max-width: 85%;
-  text-align: center;
-}
+      input[type="text"] {
+        width: 80%;
+      }
 
-/* Responsive untuk mobile */
-@media (max-width: 600px) {
-  input[type="text"] {
-    width: 90%;
-  }
+      .logo img {
+        width: 90px;
+      }
 
-  .logo {
-    width: 85px;
-  }
+      button {
+        width: 80%;
+      }
+    }
+  </style>
+</head>
+<body>
 
-  h1 {
-    font-size: 1.4rem;
-  }
-}
+  <div class="logo">
+    <img src="https://i.ibb.co/QmJwmvT/adcoin-logo.png" alt="ADCoin Logo">
+  </div>
+
+  <h1>ADC CryptoGuard</h1>
+  <div class="subtitle">Multiwallet Validator & AI Safety Scanner</div>
+
+  <div class="validator-box">
+    <form action="/validate" method="POST">
+      <input type="text" name="wallet_address" placeholder="Enter Wallet Address (ETH, TRON, BTC, etc)" required>
+      <br>
+      <button type="submit">Validate</button>
+    </form>
+  </div>
+
+  <div class="networks">
+    Supported Networks: Bitcoin (BTC), Ethereum (ETH), Binance Smart Chain (BSC), XRP, TRON (TRX), Solana (SOL)
+  </div>
+
+  <p class="disclaimer">
+    ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
+  </p>
+
+</body>
+</html>
