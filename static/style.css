@@ -1,128 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ADC CryptoGuard</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
-      background-size: 600% 600%;
-      animation: gradientBG 15s ease infinite;
-      color: #fff;
-      text-align: center;
-    }
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  color: white;
+  background-color: #000;
+  overflow: hidden;
+}
 
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("https://media.tenor.com/Vf7vhU_xJ94AAAAd/technology-network.gif") no-repeat center center;
+  background-size: cover;
+  z-index: -1;
+  opacity: 0.3;
+  filter: blur(3px);
+}
 
-    .logo {
-      margin-top: 30px;
-    }
+.container {
+  text-align: center;
+  padding: 60px 20px;
+}
 
-    .logo img {
-      width: 150px;
-    }
+.logo {
+  width: 140px;
+  margin-bottom: 20px;
+}
 
-    h1 {
-      font-size: 2.8em;
-      margin: 10px 0 5px;
-    }
+h1 {
+  font-size: 2.8em;
+  margin-bottom: 5px;
+}
 
-    .subtitle {
-      font-size: 1.2em;
-      color: #cccccc;
-      margin-bottom: 30px;
-    }
+.sub {
+  font-size: 1.1em;
+  margin-bottom: 30px;
+}
 
-    .validator-box {
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 20px 30px;
-      border-radius: 10px;
-      display: inline-block;
-      margin-bottom: 20px;
-    }
+form input[type="text"] {
+  width: 60%;
+  max-width: 400px;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1em;
+  text-align: center;
+  margin-bottom: 15px;
+}
 
-    input[type="text"] {
-      width: 60%;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: none;
-      max-width: 400px;
-    }
+form button {
+  background-color: gold;
+  border: none;
+  padding: 12px 25px;
+  font-size: 1em;
+  color: black;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    button {
-      margin-top: 15px;
-      padding: 10px 25px;
-      font-size: 16px;
-      background-color: #ffcc00;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+.result {
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 25px;
+}
 
-    .networks {
-      margin-top: 20px;
-      font-size: 0.95em;
-      color: #cccccc;
-    }
+.networks {
+  margin-top: 30px;
+  font-size: 0.95em;
+  opacity: 0.9;
+}
 
-    .disclaimer {
-      margin-top: 40px;
-      font-size: 0.85em;
-      color: #bbbbbb;
-      padding: 0 20px;
-    }
+.disclaimer {
+  margin-top: 30px;
+  font-size: 0.85em;
+  color: #ffcc00;
+  padding: 10px 20px;
+}
 
-    @media screen and (max-width: 600px) {
-      h1 {
-        font-size: 2em;
-      }
+@media screen and (max-width: 600px) {
+  form input[type="text"] {
+    width: 90%;
+  }
 
-      input[type="text"] {
-        width: 85%;
-      }
+  .logo {
+    width: 100px;
+  }
 
-      .logo img {
-        width: 120px;
-      }
-
-      button {
-        width: 85%;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="logo">
-    <img src="https://i.ibb.co/QmJwmvT/adcoin-logo.png" alt="ADCoin Logo">
-  </div>
-
-  <h1>ADC CryptoGuard</h1>
-  <div class="subtitle">Multiwallet Validator & AI Safety Scanner</div>
-
-  <div class="validator-box">
-    <form action="/validate" method="POST">
-      <input type="text" name="wallet_address" placeholder="Enter Wallet Address (ETH, TRON, BTC, etc)" required>
-      <br>
-      <button type="submit">Validate</button>
-    </form>
-  </div>
-
-  <div class="networks">
-    Supported Networks: Bitcoin (BTC), Ethereum (ETH), Binance Smart Chain (BSC), XRP, TRON (TRX), Solana (SOL)
-  </div>
-
-  <p class="disclaimer">
-    ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
-  </p>
-
-</body>
-</html>
+  h1 {
+    font-size: 2em;
+  }
+}
