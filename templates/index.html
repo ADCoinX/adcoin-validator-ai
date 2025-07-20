@@ -1,114 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ADC CRYPTOGUARD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    body {
-     
-    }
-
-    .logo {
-      width: 100px;
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      font-size: 30px;
-      margin-bottom: 20px;
-      color: #00ffc8;
-    }
-
-    input[type="text"] {
-      width: 90%;
-      padding: 12px;
-      font-size: 16px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-    }
-
-    button {
-      padding: 10px 25px;
-      font-size: 16px;
-      background-color: #00ffc8;
-      color: black;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .result {
-      margin-top: 30px;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 10px;
-    }
-
-    .tx {
-      text-align: left;
-      font-size: 14px;
-      margin-top: 10px;
-      padding: 10px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 5px;
-    }
-
-    .disclaimer {
-      font-size: 12px;
-      color: #bbb;
-      margin-top: 30px;
-    }
-
-    .networks {
-      font-size: 13px;
-      margin-top: 10px;
-      color: #88e7ff;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>ADC CRYPTOGUARD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="container">
-    <img src="/static/adcoin_logo.png" alt="ADCoin Logo" class="logo">
-    <h1>ADC CRYPTOGUARD</h1>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/adcoin_logo.png') }}" alt="ADCOIN" class="logo">
+        <h1>ADC CRYPTOGUARD</h1>
+        <form method="post">
+            <input type="text" name="wallet" placeholder="Enter wallet address...">
+            <button type="submit">Validate Wallet</button>
+        </form>
 
-    <form method="POST">
-      <input type="text" name="wallet" placeholder="Enter wallet address..." required>
-      <br>
-      <button type="submit">Validate Wallet</button>
-    </form>
+        {% if wallet %}
+        <div class="results">
+            <p><strong>Wallet:</strong> {{ wallet }}</p>
+            <p><strong>Network:</strong> {{ network }}</p>
+            <p><strong>Balance:</strong> {{ balance }}</p>
+            <p><strong>AI Risk Score:</strong> {{ risk_score }}</p>
+            <h3>Last 10 Transactions:</h3>
+            <ul>
+                {% for tx in transactions %}
+                <li>{{ tx }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
-    {% if result %}
-    <div class="result">
-      <p><strong>Wallet:</strong> {{ result.wallet }}</p>
-      <p><strong>Network:</strong> {{ result.network }}</p>
-      <p><strong>Balance:</strong> {{ result.balance }}</p>
-      <p><strong>AI Risk Score:</strong> {{ result.risk }}</p>
-
-      {% if result.transactions %}
-        <h3>Last 10 Transactions:</h3>
-        {% for tx in result.transactions %}
-          <div class="tx">
-            <p><strong>Hash:</strong> {{ tx.hash }}</p>
-            {% if tx.from %}<p>From: {{ tx.from }}</p>{% endif %}
-            {% if tx.to %}<p>To: {{ tx.to }}</p>{% endif %}
-            {% if tx.value %}<p>Amount: {{ tx.value }}</p>{% endif %}
-            {% if tx.time %}<p>Time: {{ tx.time }}</p>{% endif %}
-          </div>
-        {% endfor %}
-      {% endif %}
+        <p class="disclaimer">
+            ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
+        </p>
+        <p class="networks">Supported Networks: BTC, ETH, BSC, XRP, TRON, SOL</p>
     </div>
-    {% endif %}
-
-    <div class="disclaimer">
-      ⚠️ Disclaimer: This tool is for informational purposes only.<br>
-      Risk analysis is based on public data. Final decisions are the responsibility of the user.
-    </div>
-
-    <div class="networks">
-      Supported Networks: BTC, ETH, BSC, XRP, TRON, SOL
-    </div>
-  </div>
 </body>
 </html>
