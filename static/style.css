@@ -1,96 +1,14 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', sans-serif;
-  color: white;
-  background-color: #000;
-  overflow: hidden;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #000000);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
 }
 
-.bg-animation {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url("https://media.tenor.com/Vf7vhU_xJ94AAAAd/technology-network.gif") no-repeat center center;
-  background-size: cover;
-  z-index: -1;
-  opacity: 0.3;
-  filter: blur(3px);
-}
-
-.container {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.logo {
-  width: 140px;
-  margin-bottom: 20px;
-}
-
-h1 {
-  font-size: 2.8em;
-  margin-bottom: 5px;
-}
-
-.sub {
-  font-size: 1.1em;
-  margin-bottom: 30px;
-}
-
-form input[type="text"] {
-  width: 60%;
-  max-width: 400px;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 1em;
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-form button {
-  background-color: gold;
-  border: none;
-  padding: 12px 25px;
-  font-size: 1em;
-  color: black;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.result {
-  background-color: rgba(0, 0, 0, 0.4);
-  padding: 20px;
-  border-radius: 10px;
-  margin-top: 25px;
-}
-
-.networks {
-  margin-top: 30px;
-  font-size: 0.95em;
-  opacity: 0.9;
-}
-
-.disclaimer {
-  margin-top: 30px;
-  font-size: 0.85em;
-  color: #ffcc00;
-  padding: 10px 20px;
-}
-
-@media screen and (max-width: 600px) {
-  form input[type="text"] {
-    width: 90%;
-  }
-
-  .logo {
-    width: 100px;
-  }
-
-  h1 {
-    font-size: 2em;
-  }
+@keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
 }
