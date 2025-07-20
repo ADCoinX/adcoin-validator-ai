@@ -1,1 +1,4 @@
-# Placeholder for requirements.txt
+flask
+requests
+web3
+tronpy
