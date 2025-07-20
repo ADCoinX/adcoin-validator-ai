@@ -7,11 +7,18 @@
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: url('https://i.ibb.co/FqznqXr/klcc-bg.jpg') no-repeat center center fixed;
-      background-size: cover;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(270deg, #0f2027, #203a43, #2c5364);
+      background-size: 600% 600%;
+      animation: gradientBG 15s ease infinite;
       color: #fff;
       text-align: center;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .logo {
@@ -19,7 +26,7 @@
     }
 
     .logo img {
-      width: 120px;
+      width: 150px;
     }
 
     h1 {
@@ -70,6 +77,7 @@
       margin-top: 40px;
       font-size: 0.85em;
       color: #bbbbbb;
+      padding: 0 20px;
     }
 
     @media screen and (max-width: 600px) {
@@ -78,15 +86,15 @@
       }
 
       input[type="text"] {
-        width: 80%;
+        width: 85%;
       }
 
       .logo img {
-        width: 90px;
+        width: 120px;
       }
 
       button {
-        width: 80%;
+        width: 85%;
       }
     }
   </style>
