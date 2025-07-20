@@ -24,7 +24,7 @@ body {
 }
 
 .logo {
-  width: 110px; /* +20% dari asal */
+  width: 110px; /* +20% */
   margin-bottom: 20px;
   animation: glow 3s ease-in-out infinite alternate;
 }
@@ -47,7 +47,7 @@ h1 {
 input[type="text"] {
   padding: 12px;
   border-radius: 6px;
-  width: 60%;  /* Kecilkan width dari 100% → 60% */
+  width: 60%;  /* kurang 40% dari full */
   max-width: 400px;
   border: 1px solid #444;
   background: #111;
@@ -81,6 +81,14 @@ input[type="text"]::placeholder {
   font-size: 0.95rem;
   margin-top: 35px;
   color: #ccc;
+}
+
+.disclaimer {
+  font-size: 0.8rem;
+  margin-top: 25px;
+  color: #888;
+  max-width: 85%;
+  text-align: center;
 }
 
 /* Responsive untuk mobile */
