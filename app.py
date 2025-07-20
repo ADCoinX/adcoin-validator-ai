@@ -3,96 +3,122 @@ import requests
 
 app = Flask(__name__)
 
-def detect_chain(address):
-    if address.startswith("0x") and len(address) == 42:
-        return "ethereum"
-    elif address.startswith("T") and len(address) == 34:
-        return "tron"
-    elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
-        return "bitcoin"
-    elif address.startswith("bnb") and len(address) == 42:
-        return "bsc"
-    elif address.startswith("r") and len(address) >= 25:
-        return "xrp"
-    elif len(address) >= 32 and address[-1] != "=":
-        return "solana"
-    else:
-        return "unknown"
+# === [1] NETWORK DETECTION ===
+def detect_network(wallet):
+    if wallet.startswith("0x"):
+        return "Ethereum"
+    elif wallet.startswith("T"):
+        return "TRON"
+    elif wallet.startswith("1") or wallet.startswith("3") or wallet.startswith("bc1"):
+        return "Bitcoin"
+    elif wallet.startswith("bnb"):
+        return "BSC"
+    elif wallet.startswith("r"):
+        return "XRP"
+    elif len(wallet) == 44:
+        return "Solana"
+    return "Unknown"
 
-@app.route("/", methods=["GET", "POST"])
+# === [2] BALANCE CHECK ===
+def get_balance(wallet, network):
+    try:
+        if network == "Ethereum":
+            res = requests.get(f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey=YourApiKey").json()
+            return str(int(res['result']) / 10**18) + " ETH"
+        elif network == "TRON":
+            res = requests.get(f"https://api.trongrid.io/v1/accounts/{wallet}").json()
+            return str(res['data'][0].get('balance', 0) / 10**6) + " TRX"
+        elif network == "Bitcoin":
+            res = requests.get(f"https://blockchain.info/rawaddr/{wallet}").json()
+            return str(res['final_balance'] / 10**8) + " BTC"
+        elif network == "BSC":
+            res = requests.get(f"https://api.bscscan.com/api?module=account&action=balance&address={wallet}&apikey=YourApiKey").json()
+            return str(int(res['result']) / 10**18) + " BNB"
+        elif network == "XRP":
+            res = requests.get(f"https://api.xrpscan.com/api/v1/account/{wallet}").json()
+            return str(res['account_data']['Balance']) + " XRP"
+        elif network == "Solana":
+            res = requests.get(f"https://public-api.solscan.io/account/{wallet}").json()
+            return str(res.get('lamports', 0) / 10**9) + " SOL"
+    except:
+        return "Unavailable"
+    return "Unavailable"
+
+# === [3] AI SAFETY CHECK ===
+def ai_safety_check(wallet, balance, network):
+    try:
+        if balance == "Unavailable" or network == "Unknown":
+            return "Unknown Risk"
+        value = float(balance.split(" ")[0])
+        if value == 0:
+            return "High Risk"
+        elif value < 0.01:
+            return "Medium Risk"
+        elif value >= 0.01:
+            return "Low Risk"
+        if wallet.startswith("0x000") or wallet.endswith("0000"):
+            return "High Risk"
+    except:
+        return "Unknown Risk"
+    return "Low Risk"
+
+# === [4] TRANSACTIONS FETCH ===
+def get_transactions(wallet, network):
+    try:
+        if network == "Ethereum":
+            url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&sort=desc&apikey=YourApiKey"
+            res = requests.get(url).json()
+            txs = res.get("result", [])[:10]
+            return [{
+                "hash": tx["hash"],
+                "from": tx["from"],
+                "to": tx["to"],
+                "value": str(int(tx["value"]) / 10**18) + " ETH",
+                "time": tx["timeStamp"]
+            } for tx in txs]
+
+        elif network == "Bitcoin":
+            url = f"https://blockchain.info/rawaddr/{wallet}"
+            res = requests.get(url).json()
+            txs = res.get("txs", [])[:10]
+            return [{
+                "hash": tx["hash"],
+                "value": str(sum([o["value"] for o in tx["out"]]) / 10**8) + " BTC"
+            } for tx in txs]
+
+        elif network == "TRON":
+            url = f"https://apilist.tronscanapi.com/api/transaction?sort=-timestamp&count=true&limit=10&start=0&address={wallet}"
+            res = requests.get(url).json()
+            txs = res.get("data", [])
+            return [{
+                "hash": tx["hash"],
+                "type": tx.get("contractType", "TRX TX"),
+                "amount": tx.get("amount", 0)
+            } for tx in txs]
+
+        # Can extend to BSC, XRP, SOL later
+    except:
+        return []
+
+# === [5] MAIN ROUTE ===
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    data = {}
-    if request.method == "POST":
-        address = request.form["wallet"]
-        chain = detect_chain(address)
-        data["address"] = address
-        data["chain"] = chain.upper()
-        data["balance"] = "Unknown"
-        data["transactions"] = []
-        data["risk_score"] = "Unknown"
+    result = None
+    if request.method == 'POST':
+        wallet = request.form['wallet']
+        network = detect_network(wallet)
+        balance = get_balance(wallet, network)
+        risk_score = ai_safety_check(wallet, balance, network)
+        transactions = get_transactions(wallet, network)
+        result = {
+            'wallet': wallet,
+            'network': network,
+            'balance': balance,
+            'risk': risk_score,
+            'transactions': transactions
+        }
+    return render_template('index.html', result=result)
 
-        try:
-            if chain == "tron":
-                url = f"https://apilist.tronscanapi.com/api/account?address={address}"
-                r = requests.get(url).json()
-                data["balance"] = str(int(r.get("balance", 0)) / 1000000) + " TRX"
-                tx_url = f"https://apilist.tronscanapi.com/api/transaction?sort=-timestamp&count=true&limit=5&start=0&address={address}"
-                tx_data = requests.get(tx_url).json()
-                data["transactions"] = tx_data.get("data", [])
-                data["risk_score"] = "Low" if int(r.get("balance", 0)) > 1_000_000 else "High"
-
-            elif chain == "ethereum":
-                eth_api = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
-                r = requests.get(eth_api).json()
-                data["balance"] = str(r.get("ETH", {}).get("balance", "0")) + " ETH"
-                tx_url = f"https://api.ethplorer.io/getAddressTransactions/{address}?apiKey=freekey"
-                tx_data = requests.get(tx_url).json()
-                data["transactions"] = tx_data[:5]
-                data["risk_score"] = "Low" if r.get("ETH", {}).get("balance", 0) > 1 else "High"
-
-            elif chain == "bitcoin":
-                btc_api = f"https://blockchain.info/rawaddr/{address}"
-                r = requests.get(btc_api).json()
-                data["balance"] = str(r.get("final_balance", 0) / 100000000) + " BTC"
-                data["transactions"] = r.get("txs", [])[:5]
-                data["risk_score"] = "Low" if r.get("n_tx", 0) > 3 else "High"
-
-            elif chain == "bsc":
-                bsc_api = f"https://api.bscscan.com/api?module=account&action=balance&address={address}&apikey=YourApiKeyToken"
-                res = requests.get(bsc_api).json()
-                balance_wei = int(res.get("result", 0))
-                data["balance"] = str(balance_wei / 1e18) + " BNB"
-                data["transactions"] = []
-                data["risk_score"] = "Medium"
-
-            elif chain == "xrp":
-                xrp_api = f"https://api.xrpscan.com/api/v1/account/{address}/transactions"
-                tx_data = requests.get(xrp_api).json()
-                balance_api = f"https://api.xrpscan.com/api/v1/account/{address}"
-                bal_data = requests.get(balance_api).json()
-                data["balance"] = str(bal_data.get("balance", 0)) + " XRP"
-                data["transactions"] = tx_data[:5]
-                data["risk_score"] = "Low" if float(data["balance"].split()[0]) > 50 else "High"
-
-            elif chain == "solana":
-                sol_api = f"https://api.mainnet-beta.solana.com"
-                headers = {"Content-Type": "application/json"}
-                payload = {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "getBalance",
-                    "params": [address]
-                }
-                r = requests.post(sol_api, json=payload, headers=headers).json()
-                lamports = r.get("result", {}).get("value", 0)
-                data["balance"] = str(lamports / 1e9) + " SOL"
-                data["transactions"] = []
-                data["risk_score"] = "Medium"
-
-        except Exception as e:
-            data["error"] = str(e)
-
-    return render_template("index.html", data=data)
-
+# === [6] RUN ===
 if __name__ == "__main__":
     app.run(debug=True)
