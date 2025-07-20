@@ -1,42 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ADC CryptoGuard</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>ADC CRYPTOGUARD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+            background-image: url('/static/background.jpg'); /* Letak gambar background kau di sini */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            padding: 20px;
+            background-color: rgba(0,0,0,0.7);
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: 10px;
+        }
+
+        .logo {
+            width: 120px;
+            display: block;
+            margin: 0 auto 10px auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            width: 100%;
+        }
+
+        input[type="submit"] {
+            padding: 12px;
+            font-size: 16px;
+            background-color: #00bcd4;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .data-block {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .risk-high {
+            color: red;
+            font-weight: bold;
+        }
+
+        .risk-medium {
+            color: orange;
+            font-weight: bold;
+        }
+
+        .risk-low {
+            color: lime;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #ccc;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="bg-animation"></div>
+    <div class="container">
+        <img src="/static/adcoin_logo.png" alt="ADCoin Logo" class="logo">
+        <h1>ADC CRYPTOGUARD</h1>
 
-  <div class="container">
-    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" alt="ADCOIN Logo" class="logo">
+        <form method="POST">
+            <input type="text" name="wallet" placeholder="Enter Wallet Address..." required>
+            <input type="submit" value="Validate">
+        </form>
 
-    <h1>ADC CryptoGuard</h1>
-    <p class="sub">Multiwallet Validator & AI Safety Scanner</p>
+        {% if data %}
+        <div class="data-block">
+            <p><strong>Wallet Address:</strong> {{ data.address }}</p>
+            <p><strong>Chain:</strong> {{ data.chain }}</p>
+            <p><strong>Balance:</strong> {{ data.balance }}</p>
+            <p><strong>AI Risk Score:</strong> 
+                {% if data.risk_score == "High" %}
+                    <span class="risk-high">{{ data.risk_score }}</span>
+                {% elif data.risk_score == "Medium" %}
+                    <span class="risk-medium">{{ data.risk_score }}</span>
+                {% else %}
+                    <span class="risk-low">{{ data.risk_score }}</span>
+                {% endif %}
+            </p>
 
-    <form method="POST" action="/">
-      <input type="text" name="wallet" placeholder="Enter Wallet Address (ETH, TRON, BTC, etc)" required>
-      <button type="submit">Validate</button>
-    </form>
+            <p><strong>Latest Transactions:</strong></p>
+            <ul>
+                {% for tx in data.transactions %}
+                    <li>{{ tx | safe }}</li>
+                {% endfor %}
+            </ul>
 
-    {% if result %}
-      <div class="result">
-        <p><strong>Status:</strong> {{ result.status }}</p>
-        <p><strong>Network:</strong> {{ result.network }}</p>
-        <p><strong>Balance:</strong> {{ result.balance }}</p>
-        <p><strong>Risk Score:</strong> {{ result.risk }}</p>
-      </div>
-    {% endif %}
+            {% if data.error %}
+                <p style="color: red;"><strong>Error:</strong> {{ data.error }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
 
-    <div class="networks">
-      <strong>Supported Networks:</strong><br>
-      Bitcoin (BTC), Ethereum (ETH), Binance Smart Chain (BSC), XRP, TRON (TRX), Solana (SOL)
+        <p class="disclaimer">
+            ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
+        </p>
     </div>
-
-    <p class="disclaimer">
-      ⚠️ Disclaimer: This tool is for informational purposes only. Risk analysis is based on public data. Final decisions are the responsibility of the user.
-    </p>
-  </div>
 </body>
 </html>
