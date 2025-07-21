@@ -1,70 +1,63 @@
-
-import os
-import requests
 from flask import Flask, render_template, request
-from dotenv import load_dotenv
-
-load_dotenv()
+import requests
+import re
 
 app = Flask(__name__)
 
-ETHERSCAN_API = os.getenv("ETHERSCAN_API")
-BSCSCAN_API = os.getenv("BSCSCAN_API")
-
-def get_eth_balance(wallet):
-    try:
-        url = f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey={ETHERSCAN_API}"
-        res = requests.get(url).json()
-        return int(res["result"]) / 1e18
-    except:
-        return None
-
-def get_eth_txs(wallet):
-    try:
-        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&startblock=0&endblock=99999999&sort=desc&apikey={ETHERSCAN_API}"
-        res = requests.get(url).json()
-        return res["result"][:10]
-    except:
-        return []
-
-def get_bsc_balance(wallet):
-    try:
-        url = f"https://api.bscscan.com/api?module=account&action=balance&address={wallet}&apikey={BSCSCAN_API}"
-        res = requests.get(url).json()
-        return int(res["result"]) / 1e18
-    except:
-        return None
-
-def ai_risk_score(balance, tx_count):
-    if balance == 0 or tx_count == 0:
-        return "⚠️ High Risk"
-    elif tx_count < 5:
-        return "🟡 Medium Risk"
+def detect_network(wallet):
+    if wallet.startswith("0x") and len(wallet) == 42:
+        return "Ethereum"
+    elif wallet.startswith("T") and len(wallet) == 34:
+        return "TRON"
+    elif wallet.startswith("1") or wallet.startswith("3") or wallet.startswith("bc1"):
+        return "Bitcoin"
+    elif wallet.startswith("bnb") and len(wallet) > 30:
+        return "BSC"
+    elif wallet.startswith("r") and len(wallet) > 20:
+        return "XRP"
+    elif len(wallet) == 44 and re.match(r"^[1-9A-HJ-NP-Za-km-z]+$", wallet):
+        return "Solana"
     else:
-        return "🟢 Low Risk"
+        return "Unknown"
 
-@app.route('/')
+def get_balance_eth(wallet):
+    url = f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey=JTY578RMBIUHX448ICPB9JD5UERHWKA2PE"
+    try:
+        res = requests.get(url).json()
+        balance = int(res['result']) / 1e18
+        return f"{balance:.5f} ETH"
+    except:
+        return "N/A"
+
+def get_balance_tron(wallet):
+    url = f"https://apilist.tronscan.org/api/account?address={wallet}"
+    try:
+        res = requests.get(url).json()
+        balance = res.get("balance", 0) / 1e6
+        return f"{balance:.2f} TRX"
+    except:
+        return "N/A"
+
+@app.route("/")
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/validate', methods=['POST'])
+@app.route("/validate", methods=["POST"])
 def validate():
-    wallet = request.form['wallet']
-    wallet = wallet.strip()
+    wallet = request.form.get("wallet")
+    network = detect_network(wallet)
 
-    eth_balance = get_eth_balance(wallet)
-    eth_txs = get_eth_txs(wallet)
-    eth_score = ai_risk_score(eth_balance, len(eth_txs))
+    if network == "Ethereum":
+        balance = get_balance_eth(wallet)
+    elif network == "TRON":
+        balance = get_balance_tron(wallet)
+    else:
+        balance = "N/A"
 
-    bsc_balance = get_bsc_balance(wallet)
-    bsc_score = ai_risk_score(bsc_balance, 0)
+    # Dummy safety score
+    score = "Low Risk ✅" if balance != "N/A" else "Unknown ⚠️"
 
-    return render_template('index.html', wallet=wallet,
-                           eth_balance=eth_balance,
-                           eth_score=eth_score,
-                           eth_txs=eth_txs,
-                           bsc_balance=bsc_balance,
-                           bsc_score=bsc_score)
+    return render_template("index.html", wallet=wallet, network=network, balance=balance, score=score)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
