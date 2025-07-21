@@ -5,7 +5,10 @@ import os
 
 app = Flask(__name__)
 
-# AI Score calculation
+# Etherscan API Key (Real)
+ETHERSCAN_API_KEY = "ABUE4N8J7TVP6P2K7BXUTSC2AZWXJ9MIJD"
+
+# AI Score logic
 def get_ai_score(balance, tx_count):
     score = 100
     if balance == 0:
@@ -18,7 +21,7 @@ def get_ai_score(balance, tx_count):
         score -= 10
     return max(score, 0)
 
-# Detect wallet chain type
+# Chain detection
 def detect_chain(address):
     if address.startswith("0x") and len(address) == 42:
         return "ethereum"
@@ -33,45 +36,47 @@ def detect_chain(address):
     else:
         return "unknown"
 
-# ETH API
+# Ethereum (Etherscan API)
 def get_eth_data(address):
     try:
-        url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
-        r = requests.get(url, timeout=8).json()
-        balance = r.get("ETH", {}).get("balance", 0)
-        txs = r.get("transactions", [])[:10]
+        balance_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
+        tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
+        balance_res = requests.get(balance_url, timeout=10).json()
+        tx_res = requests.get(tx_url, timeout=10).json()
+        balance = int(balance_res.get("result", 0)) / 1e18
+        txs = tx_res.get("result", [])[:10]
         return balance, txs
     except Exception as e:
-        print("ETH API ERROR:", e)
+        print("ETHERSCAN ERROR:", e)
         return 0, []
 
-# TRON API
+# TRON (public)
 def get_tron_data(address):
     try:
         url = f"https://apilist.tronscanapi.com/api/account?address={address}"
         r = requests.get(url, timeout=8).json()
         balance = r.get("balance", 0) / 1e6
-        txs_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
-        txs = requests.get(txs_url, timeout=8).json().get("data", [])
+        tx_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
+        txs = requests.get(tx_url, timeout=8).json().get("data", [])
         return balance, txs
     except Exception as e:
-        print("TRON API ERROR:", e)
+        print("TRON ERROR:", e)
         return 0, []
 
-# BTC API
+# Bitcoin (public)
 def get_btc_data(address):
     try:
         url = f"https://blockstream.info/api/address/{address}"
         r = requests.get(url, timeout=8).json()
         balance = r.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
-        txs_url = f"https://blockstream.info/api/address/{address}/txs"
-        txs = requests.get(txs_url, timeout=8).json()[:10]
+        tx_url = f"https://blockstream.info/api/address/{address}/txs"
+        txs = requests.get(tx_url, timeout=8).json()[:10]
         return balance, txs
     except Exception as e:
-        print("BTC API ERROR:", e)
+        print("BTC ERROR:", e)
         return 0, []
 
-# XRP API
+# XRP (public)
 def get_xrp_data(address):
     try:
         url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
@@ -81,10 +86,10 @@ def get_xrp_data(address):
         txs = requests.get(tx_url, timeout=8).json()
         return balance, txs
     except Exception as e:
-        print("XRP API ERROR:", e)
+        print("XRP ERROR:", e)
         return 0, []
 
-# SOLANA API
+# Solana (public)
 def get_solana_data(address):
     try:
         url = f"https://public-api.solscan.io/account/{address}"
@@ -95,15 +100,15 @@ def get_solana_data(address):
         txs = requests.get(tx_url, headers=headers, timeout=8).json()
         return balance, txs
     except Exception as e:
-        print("SOLANA API ERROR:", e)
+        print("SOLANA ERROR:", e)
         return 0, []
 
-# UI Home
+# Home route
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-# Validate POST
+# Validate route
 @app.route('/validate', methods=['POST'])
 def validate():
     result = None
@@ -134,7 +139,7 @@ def validate():
 
     return render_template('index.html', result=result)
 
-# Render hosting compatibility
+# Render hosting port
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
