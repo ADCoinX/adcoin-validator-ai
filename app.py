@@ -1,124 +1,116 @@
 from flask import Flask, render_template, request
 import requests
+import re
 
 app = Flask(__name__)
 
-# === [1] NETWORK DETECTION ===
-def detect_network(wallet):
-    if wallet.startswith("0x"):
-        return "Ethereum"
-    elif wallet.startswith("T"):
-        return "TRON"
-    elif wallet.startswith("1") or wallet.startswith("3") or wallet.startswith("bc1"):
-        return "Bitcoin"
-    elif wallet.startswith("bnb"):
-        return "BSC"
-    elif wallet.startswith("r"):
-        return "XRP"
-    elif len(wallet) == 44:
-        return "Solana"
-    return "Unknown"
+# AI score simple logic
+def get_ai_score(balance, tx_count):
+    score = 100
+    if balance == 0:
+        score -= 40
+    if tx_count == 0:
+        score -= 40
+    if balance < 0.01:
+        score -= 10
+    if tx_count < 3:
+        score -= 10
+    return max(score, 0)
 
-# === [2] BALANCE CHECK ===
-def get_balance(wallet, network):
-    try:
-        if network == "Ethereum":
-            res = requests.get(f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey=YourApiKey").json()
-            return str(int(res['result']) / 10**18) + " ETH"
-        elif network == "TRON":
-            res = requests.get(f"https://api.trongrid.io/v1/accounts/{wallet}").json()
-            return str(res['data'][0].get('balance', 0) / 10**6) + " TRX"
-        elif network == "Bitcoin":
-            res = requests.get(f"https://blockchain.info/rawaddr/{wallet}").json()
-            return str(res['final_balance'] / 10**8) + " BTC"
-        elif network == "BSC":
-            res = requests.get(f"https://api.bscscan.com/api?module=account&action=balance&address={wallet}&apikey=YourApiKey").json()
-            return str(int(res['result']) / 10**18) + " BNB"
-        elif network == "XRP":
-            res = requests.get(f"https://api.xrpscan.com/api/v1/account/{wallet}").json()
-            return str(res['account_data']['Balance']) + " XRP"
-        elif network == "Solana":
-            res = requests.get(f"https://public-api.solscan.io/account/{wallet}").json()
-            return str(res.get('lamports', 0) / 10**9) + " SOL"
-    except:
-        return "Unavailable"
-    return "Unavailable"
+# ETH/BSC via public API
+def get_eth_data(address):
+    url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
+    r = requests.get(url).json()
+    balance = r.get("ETH", {}).get("balance", 0)
+    txs = r.get("transactions", [])[:10]
+    return balance, txs
 
-# === [3] AI SAFETY CHECK ===
-def ai_safety_check(wallet, balance, network):
-    try:
-        if balance == "Unavailable" or network == "Unknown":
-            return "Unknown Risk"
-        value = float(balance.split(" ")[0])
-        if value == 0:
-            return "High Risk"
-        elif value < 0.01:
-            return "Medium Risk"
-        elif value >= 0.01:
-            return "Low Risk"
-        if wallet.startswith("0x000") or wallet.endswith("0000"):
-            return "High Risk"
-    except:
-        return "Unknown Risk"
-    return "Low Risk"
+# TRON
+def get_tron_data(address):
+    url = f"https://apilist.tronscanapi.com/api/account?address={address}"
+    r = requests.get(url).json()
+    balance = r.get("balance", 0) / 1e6
+    url_tx = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
+    txs = requests.get(url_tx).json().get("data", [])
+    return balance, txs
 
-# === [4] TRANSACTIONS FETCH ===
-def get_transactions(wallet, network):
-    try:
-        if network == "Ethereum":
-            url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&sort=desc&apikey=YourApiKey"
-            res = requests.get(url).json()
-            txs = res.get("result", [])[:10]
-            return [{
-                "hash": tx["hash"],
-                "from": tx["from"],
-                "to": tx["to"],
-                "value": str(int(tx["value"]) / 10**18) + " ETH",
-                "time": tx["timeStamp"]
-            } for tx in txs]
+# BTC
+def get_btc_data(address):
+    url = f"https://blockstream.info/api/address/{address}"
+    r = requests.get(url).json()
+    balance = r.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
+    tx_url = f"https://blockstream.info/api/address/{address}/txs"
+    txs = requests.get(tx_url).json()[:10]
+    return balance, txs
 
-        elif network == "Bitcoin":
-            url = f"https://blockchain.info/rawaddr/{wallet}"
-            res = requests.get(url).json()
-            txs = res.get("txs", [])[:10]
-            return [{
-                "hash": tx["hash"],
-                "value": str(sum([o["value"] for o in tx["out"]]) / 10**8) + " BTC"
-            } for tx in txs]
+# Solana
+def get_solana_data(address):
+    url = f"https://public-api.solscan.io/account/{address}"
+    headers = {"accept": "application/json"}
+    r = requests.get(url, headers=headers).json()
+    balance = r.get("lamports", 0) / 1e9
+    tx_url = f"https://public-api.solscan.io/account/transactions?account={address}&limit=10"
+    txs = requests.get(tx_url, headers=headers).json()
+    return balance, txs
 
-        elif network == "TRON":
-            url = f"https://apilist.tronscanapi.com/api/transaction?sort=-timestamp&count=true&limit=10&start=0&address={wallet}"
-            res = requests.get(url).json()
-            txs = res.get("data", [])
-            return [{
-                "hash": tx["hash"],
-                "type": tx.get("contractType", "TRX TX"),
-                "amount": tx.get("amount", 0)
-            } for tx in txs]
+# XRP
+def get_xrp_data(address):
+    url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
+    r = requests.get(url).json()
+    balance = float(r.get("xrpBalance", 0))
+    tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
+    txs = requests.get(tx_url).json()
+    return balance, txs
 
-        # Can extend to BSC, XRP, SOL later
-    except:
-        return []
+# Smart detector
+def detect_chain(address):
+    if address.startswith("0x") and len(address) == 42:
+        return "ethereum"
+    elif address.startswith("T") and len(address) == 34:
+        return "tron"
+    elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
+        return "bitcoin"
+    elif re.match(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$", address):
+        return "solana"
+    elif address.startswith("r") and len(address) > 24:
+        return "xrp"
+    else:
+        return "unknown"
 
-# === [5] MAIN ROUTE ===
 @app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
     if request.method == 'POST':
-        wallet = request.form['wallet']
-        network = detect_network(wallet)
-        balance = get_balance(wallet, network)
-        risk_score = ai_safety_check(wallet, balance, network)
-        transactions = get_transactions(wallet, network)
+        address = request.form['address']
+        chain = detect_chain(address)
+        balance, txs = 0, []
+
+        try:
+            if chain == "ethereum":
+                balance, txs = get_eth_data(address)
+            elif chain == "tron":
+                balance, txs = get_tron_data(address)
+            elif chain == "bitcoin":
+                balance, txs = get_btc_data(address)
+            elif chain == "solana":
+                balance, txs = get_solana_data(address)
+            elif chain == "xrp":
+                balance, txs = get_xrp_data(address)
+        except:
+            balance, txs = 0, []
+
+        ai_score = get_ai_score(balance, len(txs))
         result = {
-            'wallet': wallet,
-            'network': network,
+            'address': address,
+            'chain': chain,
             'balance': balance,
-            'risk': risk_score,
-            'transactions': transactions
+            'txs': txs,
+            'ai_score': ai_score
         }
+
     return render_template('index.html', result=result)
 
-# === [6] RUN ===
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
