@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 
-# AI Scoring Logic
+# AI Score calculation
 def get_ai_score(balance, tx_count):
     score = 100
     if balance == 0:
@@ -18,7 +18,7 @@ def get_ai_score(balance, tx_count):
         score -= 10
     return max(score, 0)
 
-# Detect Wallet Chain
+# Detect wallet chain type
 def detect_chain(address):
     if address.startswith("0x") and len(address) == 42:
         return "ethereum"
@@ -43,7 +43,7 @@ def get_eth_data(address):
         return balance, txs
     except Exception as e:
         print("ETH API ERROR:", e)
-        return 0, [{"error": "Fallback: ETH API failed"}]
+        return 0, []
 
 # TRON API
 def get_tron_data(address):
@@ -51,12 +51,12 @@ def get_tron_data(address):
         url = f"https://apilist.tronscanapi.com/api/account?address={address}"
         r = requests.get(url, timeout=8).json()
         balance = r.get("balance", 0) / 1e6
-        tx_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
-        txs = requests.get(tx_url, timeout=8).json().get("data", [])
+        txs_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
+        txs = requests.get(txs_url, timeout=8).json().get("data", [])
         return balance, txs
     except Exception as e:
         print("TRON API ERROR:", e)
-        return 0, [{"error": "Fallback: TRON API failed"}]
+        return 0, []
 
 # BTC API
 def get_btc_data(address):
@@ -69,7 +69,7 @@ def get_btc_data(address):
         return balance, txs
     except Exception as e:
         print("BTC API ERROR:", e)
-        return 0, [{"error": "Fallback: BTC API failed"}]
+        return 0, []
 
 # XRP API
 def get_xrp_data(address):
@@ -82,9 +82,9 @@ def get_xrp_data(address):
         return balance, txs
     except Exception as e:
         print("XRP API ERROR:", e)
-        return 0, [{"error": "Fallback: XRP API failed"}]
+        return 0, []
 
-# Solana API
+# SOLANA API
 def get_solana_data(address):
     try:
         url = f"https://public-api.solscan.io/account/{address}"
@@ -96,14 +96,14 @@ def get_solana_data(address):
         return balance, txs
     except Exception as e:
         print("SOLANA API ERROR:", e)
-        return 0, [{"error": "Fallback: SOLANA API failed"}]
+        return 0, []
 
-# Home route
+# UI Home
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-# Validator POST
+# Validate POST
 @app.route('/validate', methods=['POST'])
 def validate():
     result = None
@@ -134,7 +134,7 @@ def validate():
 
     return render_template('index.html', result=result)
 
-# Render deployment port
+# Render hosting compatibility
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
