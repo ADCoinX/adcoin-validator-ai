@@ -4,7 +4,7 @@ import re
 
 app = Flask(__name__)
 
-# AI score simple logic
+# AI Score Calculation
 def get_ai_score(balance, tx_count):
     score = 100
     if balance == 0:
@@ -17,7 +17,22 @@ def get_ai_score(balance, tx_count):
         score -= 10
     return max(score, 0)
 
-# ETH/BSC via public API
+# Chain Detection
+def detect_chain(address):
+    if address.startswith("0x") and len(address) == 42:
+        return "ethereum"
+    elif address.startswith("T") and len(address) == 34:
+        return "tron"
+    elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
+        return "bitcoin"
+    elif address.startswith("r") and len(address) > 24:
+        return "xrp"
+    elif re.match(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$", address):
+        return "solana"
+    else:
+        return "unknown"
+
+# ETH API
 def get_eth_data(address):
     url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
     r = requests.get(url).json()
@@ -25,25 +40,34 @@ def get_eth_data(address):
     txs = r.get("transactions", [])[:10]
     return balance, txs
 
-# TRON
+# TRON API
 def get_tron_data(address):
     url = f"https://apilist.tronscanapi.com/api/account?address={address}"
     r = requests.get(url).json()
     balance = r.get("balance", 0) / 1e6
-    url_tx = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
-    txs = requests.get(url_tx).json().get("data", [])
+    txs_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
+    txs = requests.get(txs_url).json().get("data", [])
     return balance, txs
 
-# BTC
+# BTC API
 def get_btc_data(address):
     url = f"https://blockstream.info/api/address/{address}"
     r = requests.get(url).json()
     balance = r.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
-    tx_url = f"https://blockstream.info/api/address/{address}/txs"
-    txs = requests.get(tx_url).json()[:10]
+    txs_url = f"https://blockstream.info/api/address/{address}/txs"
+    txs = requests.get(txs_url).json()[:10]
     return balance, txs
 
-# Solana
+# XRP API
+def get_xrp_data(address):
+    url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
+    r = requests.get(url).json()
+    balance = float(r.get("xrpBalance", 0))
+    txs_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
+    txs = requests.get(txs_url).json()
+    return balance, txs
+
+# Solana API
 def get_solana_data(address):
     url = f"https://public-api.solscan.io/account/{address}"
     headers = {"accept": "application/json"}
@@ -53,34 +77,13 @@ def get_solana_data(address):
     txs = requests.get(tx_url, headers=headers).json()
     return balance, txs
 
-# XRP
-def get_xrp_data(address):
-    url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
-    r = requests.get(url).json()
-    balance = float(r.get("xrpBalance", 0))
-    tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
-    txs = requests.get(tx_url).json()
-    return balance, txs
+# ROUTE
+@app.route('/', methods=['GET'])
+def home():
+    return render_template('index.html')
 
-# Smart detector
-def detect_chain(address):
-    if address.startswith("0x") and len(address) == 42:
-        return "ethereum"
-    elif address.startswith("T") and len(address) == 34:
-        return "tron"
-    elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
-        return "bitcoin"
-    elif re.match(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$", address):
-        return "solana"
-    elif address.startswith("r") and len(address) > 24:
-        return "xrp"
-    else:
-        return "unknown"
-
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/validate', methods=['GET', 'POST'])
+@app.route('/validate', methods=['POST'])
 def validate():
-    ...
     result = None
     if request.method == 'POST':
         address = request.form['wallet']
@@ -94,12 +97,12 @@ def validate():
                 balance, txs = get_tron_data(address)
             elif chain == "bitcoin":
                 balance, txs = get_btc_data(address)
-            elif chain == "solana":
-                balance, txs = get_solana_data(address)
             elif chain == "xrp":
                 balance, txs = get_xrp_data(address)
+            elif chain == "solana":
+                balance, txs = get_solana_data(address)
         except:
-            balance, txs = 0, []
+            txs = []
 
         ai_score = get_ai_score(balance, len(txs))
         result = {
@@ -113,6 +116,4 @@ def validate():
     return render_template('index.html', result=result)
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
