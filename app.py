@@ -83,7 +83,7 @@ def validate():
     ...
     result = None
     if request.method == 'POST':
-        address = request.form['address']
+        address = request.form['wallet']
         chain = detect_chain(address)
         balance, txs = 0, []
 
