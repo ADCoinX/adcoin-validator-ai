@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 
-# AI score based on simple rule
+# AI Scoring Logic
 def get_ai_score(balance, tx_count):
     score = 100
     if balance == 0:
@@ -18,7 +18,7 @@ def get_ai_score(balance, tx_count):
         score -= 10
     return max(score, 0)
 
-# Chain detector
+# Detect Wallet Chain
 def detect_chain(address):
     if address.startswith("0x") and len(address) == 42:
         return "ethereum"
@@ -33,57 +33,77 @@ def detect_chain(address):
     else:
         return "unknown"
 
-# ETH balance and tx (ethplorer)
+# ETH API
 def get_eth_data(address):
-    url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
-    r = requests.get(url).json()
-    balance = r.get("ETH", {}).get("balance", 0)
-    txs = r.get("transactions", [])[:10]
-    return balance, txs
+    try:
+        url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
+        r = requests.get(url, timeout=8).json()
+        balance = r.get("ETH", {}).get("balance", 0)
+        txs = r.get("transactions", [])[:10]
+        return balance, txs
+    except Exception as e:
+        print("ETH API ERROR:", e)
+        return 0, [{"error": "Fallback: ETH API failed"}]
 
-# TRON (tronscan)
+# TRON API
 def get_tron_data(address):
-    url = f"https://apilist.tronscanapi.com/api/account?address={address}"
-    r = requests.get(url).json()
-    balance = r.get("balance", 0) / 1e6
-    txs_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
-    txs = requests.get(txs_url).json().get("data", [])
-    return balance, txs
+    try:
+        url = f"https://apilist.tronscanapi.com/api/account?address={address}"
+        r = requests.get(url, timeout=8).json()
+        balance = r.get("balance", 0) / 1e6
+        tx_url = f"https://apilist.tronscanapi.com/api/transaction?address={address}&limit=10"
+        txs = requests.get(tx_url, timeout=8).json().get("data", [])
+        return balance, txs
+    except Exception as e:
+        print("TRON API ERROR:", e)
+        return 0, [{"error": "Fallback: TRON API failed"}]
 
-# BTC (blockstream)
+# BTC API
 def get_btc_data(address):
-    url = f"https://blockstream.info/api/address/{address}"
-    r = requests.get(url).json()
-    balance = r.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
-    txs_url = f"https://blockstream.info/api/address/{address}/txs"
-    txs = requests.get(txs_url).json()[:10]
-    return balance, txs
+    try:
+        url = f"https://blockstream.info/api/address/{address}"
+        r = requests.get(url, timeout=8).json()
+        balance = r.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
+        txs_url = f"https://blockstream.info/api/address/{address}/txs"
+        txs = requests.get(txs_url, timeout=8).json()[:10]
+        return balance, txs
+    except Exception as e:
+        print("BTC API ERROR:", e)
+        return 0, [{"error": "Fallback: BTC API failed"}]
 
-# XRP
+# XRP API
 def get_xrp_data(address):
-    url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
-    r = requests.get(url).json()
-    balance = float(r.get("xrpBalance", 0))
-    tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
-    txs = requests.get(tx_url).json()
-    return balance, txs
+    try:
+        url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
+        r = requests.get(url, timeout=8).json()
+        balance = float(r.get("xrpBalance", 0))
+        tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
+        txs = requests.get(tx_url, timeout=8).json()
+        return balance, txs
+    except Exception as e:
+        print("XRP API ERROR:", e)
+        return 0, [{"error": "Fallback: XRP API failed"}]
 
-# Solana
+# Solana API
 def get_solana_data(address):
-    url = f"https://public-api.solscan.io/account/{address}"
-    headers = {"accept": "application/json"}
-    r = requests.get(url, headers=headers).json()
-    balance = r.get("lamports", 0) / 1e9
-    tx_url = f"https://public-api.solscan.io/account/transactions?account={address}&limit=10"
-    txs = requests.get(tx_url, headers=headers).json()
-    return balance, txs
+    try:
+        url = f"https://public-api.solscan.io/account/{address}"
+        headers = {"accept": "application/json"}
+        r = requests.get(url, headers=headers, timeout=8).json()
+        balance = r.get("lamports", 0) / 1e9
+        tx_url = f"https://public-api.solscan.io/account/transactions?account={address}&limit=10"
+        txs = requests.get(tx_url, headers=headers, timeout=8).json()
+        return balance, txs
+    except Exception as e:
+        print("SOLANA API ERROR:", e)
+        return 0, [{"error": "Fallback: SOLANA API failed"}]
 
-# Main UI
+# Home route
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-# Handle POST
+# Validator POST
 @app.route('/validate', methods=['POST'])
 def validate():
     result = None
@@ -92,19 +112,16 @@ def validate():
         chain = detect_chain(address)
         balance, txs = 0, []
 
-        try:
-            if chain == "ethereum":
-                balance, txs = get_eth_data(address)
-            elif chain == "tron":
-                balance, txs = get_tron_data(address)
-            elif chain == "bitcoin":
-                balance, txs = get_btc_data(address)
-            elif chain == "xrp":
-                balance, txs = get_xrp_data(address)
-            elif chain == "solana":
-                balance, txs = get_solana_data(address)
-        except:
-            txs = []
+        if chain == "ethereum":
+            balance, txs = get_eth_data(address)
+        elif chain == "tron":
+            balance, txs = get_tron_data(address)
+        elif chain == "bitcoin":
+            balance, txs = get_btc_data(address)
+        elif chain == "xrp":
+            balance, txs = get_xrp_data(address)
+        elif chain == "solana":
+            balance, txs = get_solana_data(address)
 
         ai_score = get_ai_score(balance, len(txs))
         result = {
@@ -117,7 +134,7 @@ def validate():
 
     return render_template('index.html', result=result)
 
-# Render hosting port fix
+# Render deployment port
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
