@@ -78,7 +78,9 @@ def detect_chain(address):
         return "unknown"
 
 @app.route('/', methods=['GET', 'POST'])
-def index():
+@app.route('/validate', methods=['GET', 'POST'])
+def validate():
+    ...
     result = None
     if request.method == 'POST':
         address = request.form['address']
