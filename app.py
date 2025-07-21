@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request
 import requests
 import re
+import os
 
 app = Flask(__name__)
 
-# AI Score Calculation
+# AI score based on simple rule
 def get_ai_score(balance, tx_count):
     score = 100
     if balance == 0:
@@ -17,7 +18,7 @@ def get_ai_score(balance, tx_count):
         score -= 10
     return max(score, 0)
 
-# Chain Detection
+# Chain detector
 def detect_chain(address):
     if address.startswith("0x") and len(address) == 42:
         return "ethereum"
@@ -32,7 +33,7 @@ def detect_chain(address):
     else:
         return "unknown"
 
-# ETH API
+# ETH balance and tx (ethplorer)
 def get_eth_data(address):
     url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
     r = requests.get(url).json()
@@ -40,7 +41,7 @@ def get_eth_data(address):
     txs = r.get("transactions", [])[:10]
     return balance, txs
 
-# TRON API
+# TRON (tronscan)
 def get_tron_data(address):
     url = f"https://apilist.tronscanapi.com/api/account?address={address}"
     r = requests.get(url).json()
@@ -49,7 +50,7 @@ def get_tron_data(address):
     txs = requests.get(txs_url).json().get("data", [])
     return balance, txs
 
-# BTC API
+# BTC (blockstream)
 def get_btc_data(address):
     url = f"https://blockstream.info/api/address/{address}"
     r = requests.get(url).json()
@@ -58,16 +59,16 @@ def get_btc_data(address):
     txs = requests.get(txs_url).json()[:10]
     return balance, txs
 
-# XRP API
+# XRP
 def get_xrp_data(address):
     url = f"https://api.xrpscan.com/api/v1/account/{address}/summary"
     r = requests.get(url).json()
     balance = float(r.get("xrpBalance", 0))
-    txs_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
-    txs = requests.get(txs_url).json()
+    tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?limit=10"
+    txs = requests.get(tx_url).json()
     return balance, txs
 
-# Solana API
+# Solana
 def get_solana_data(address):
     url = f"https://public-api.solscan.io/account/{address}"
     headers = {"accept": "application/json"}
@@ -77,11 +78,12 @@ def get_solana_data(address):
     txs = requests.get(tx_url, headers=headers).json()
     return balance, txs
 
-# ROUTE
+# Main UI
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
+# Handle POST
 @app.route('/validate', methods=['POST'])
 def validate():
     result = None
@@ -115,7 +117,7 @@ def validate():
 
     return render_template('index.html', result=result)
 
+# Render hosting port fix
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
