@@ -15,6 +15,14 @@
       <input type="text" name="wallet" placeholder="Enter wallet address..." required />
       <button type="submit">Validate Wallet</button>
     </form>
+    {% if wallet %}
+    <div class="result">
+        <p><strong>Wallet:</strong> {{ wallet }}</p>
+        <p><strong>Network:</strong> {{ network }}</p>
+        <p><strong>Balance:</strong> {{ balance }}</p>
+        <p><strong>Safety Score:</strong> {{ score }}</p>
+    </div>
+{% endif %}
     <p class="disclaimer">
       ⚠️ Disclaimer: This tool is for informational purposes only. <br>
       Risk analysis is based on public data. Final decisions are the responsibility of the user.
