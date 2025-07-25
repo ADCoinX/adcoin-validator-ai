@@ -11,25 +11,26 @@
   <div class="container">
     <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
     <h1>ADC CRYPTOGUARD</h1>
-    <form method="POST" action="/validate">
+    
+    <!-- ✅ FORM action dibetulkan ke "/" -->
+    <form method="POST" action="/">
       <input type="text" name="wallet" placeholder="Enter wallet address..." required />
       <button type="submit">Validate Wallet</button>
     </form>
 
-    {% if wallet %}
+    {% if result.address %}
     <div class="result">
-        <p><strong>Wallet:</strong> {{ wallet }}</p>
-        <p><strong>Network:</strong> {{ network }}</p>
-        <p><strong>Balance:</strong> {{ balance }}</p>
-        <p><strong>AI Risk Score:</strong> {{ ai_score }} / 100</p>
-        <p><strong>Risk Analysis:</strong> {{ reason }}</p>
-        <p><strong>Wallet Age:</strong> {{ wallet_age }} days</p>
-        <p><strong>Transaction Count:</strong> {{ tx_count }}</p>
-        <p><a href="/export-iso?wallet={{ wallet }}" target="_blank" style="color:limegreen;">⬇️ Export ISO 20022 (XML)</a></p>
+        <p><strong>Wallet:</strong> {{ result.address }}</p>
+        <p><strong>Network:</strong> {{ result.network }}</p>
+        <p><strong>Balance:</strong> {{ result.balance }}</p>
+        <p><strong>AI Risk Score:</strong> {{ result.ai_score }} / 100</p>
+        <p><strong>Risk Analysis:</strong> {{ result.reason }}</p>
+        <p><strong>Wallet Age:</strong> {{ result.wallet_age }} days</p>
+        <p><strong>Transaction Count:</strong> {{ result.tx_count }}</p>
+        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">⬇️ Export ISO 20022 (XML)</a></p>
     </div>
 
-    <!-- Show last 5 transactions -->
-    {% if last5tx %}
+    {% if result.last5tx %}
       <div class="transactions" style="margin-top:25px;">
         <h4>Last 5 Transactions:</h4>
         <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
@@ -40,7 +41,7 @@
             <th>To</th>
             <th>Value</th>
           </tr>
-          {% for tx in last5tx %}
+          {% for tx in result.last5tx %}
           <tr>
             <td style="max-width:150px;overflow-x:auto;">
               <a href="#" style="color:#0af;">{{ tx.hash[:10] }}...</a>
@@ -56,7 +57,6 @@
     {% endif %}
     {% endif %}
 
-    <!-- User count at the bottom -->
     <div style="margin-top:30px;color:#00c783;">
       <b>{{ user_count }}</b> users have tested this AI Wallet Validator!
     </div>
