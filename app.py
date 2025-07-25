@@ -1,7 +1,14 @@
 from flask import Flask, render_template, request
 import requests
 import re
+import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load .env (for local). On Render, ENV VAR injected by platform.
+load_dotenv()
+
+ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 
 app = Flask(__name__)
 
@@ -22,7 +29,7 @@ def detect_network(wallet):
         return "Unknown"
 
 def get_balance_eth(wallet):
-    url = f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey=JTY578RMBIUHX448ICPB9JD5UERHWKA2PE"
+    url = f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey={ETHERSCAN_API_KEY}"
     try:
         res = requests.get(url).json()
         balance = int(res['result']) / 1e18
@@ -31,7 +38,7 @@ def get_balance_eth(wallet):
         return "N/A"
 
 def get_last5_tx_eth(wallet):
-    url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&sort=desc&apikey=JTY578RMBIUHX448ICPB9JD5UERHWKA2PE"
+    url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&sort=desc&apikey={ETHERSCAN_API_KEY}"
     try:
         res = requests.get(url).json()
         txs = res.get('result', [])[:5]
