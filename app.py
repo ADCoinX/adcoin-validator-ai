@@ -131,6 +131,24 @@ def validate():
         last5tx=last5tx,
         user_count=user_count
     )
+@app.route("/export-iso", methods=["GET"])
+def export_iso():
+    wallet = request.args.get("wallet")
+    network = detect_network(wallet)
 
+    if network == "Ethereum":
+        balance = get_balance_eth(wallet)
+    elif network == "TRON":
+        balance = get_balance_tron(wallet)
+    else:
+        balance = "N/A"
+
+    from iso_export import generate_iso_xml
+    import io
+    from flask import send_file
+
+    xml_data = generate_iso_xml(wallet, network, balance)
+    return send_file(io.BytesIO(xml_data.encode()), mimetype='application/xml',
+                     as_attachment=True, download_name=f"{wallet}_ISO20022.xml")
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
