@@ -22,7 +22,37 @@
         <p><strong>Balance:</strong> {{ balance }}</p>
         <p><strong>Safety Score:</strong> {{ score }}</p>
     </div>
-{% endif %}
+      <!-- Show last 5 transactions -->
+      {% if last5tx %}
+        <div class="transactions" style="margin-top:25px;">
+          <h4>Last 5 Transactions:</h4>
+          <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
+            <tr>
+              <th>Hash</th>
+              <th>Date/Time</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Value</th>
+            </tr>
+            {% for tx in last5tx %}
+            <tr>
+              <td style="max-width:150px;overflow-x:auto;">
+                <a href="#" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              </td>
+              <td>{{ tx.time }}</td>
+              <td style="max-width:100px;overflow-x:auto;">{{ tx.from }}</td>
+              <td style="max-width:100px;overflow-x:auto;">{{ tx.to }}</td>
+              <td>{{ tx.value }}</td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+      {% endif %}
+    {% endif %}
+    <!-- User count at the bottom -->
+    <div style="margin-top:30px;color:#00c783;">
+      <b>{{ user_count }}</b> users have tested this AI Wallet Validator!
+    </div>
     <p class="disclaimer">
       ⚠️ Disclaimer: This tool is for informational purposes only. <br>
       Risk analysis is based on public data. Final decisions are the responsibility of the user.
