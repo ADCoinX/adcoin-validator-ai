@@ -22,6 +22,7 @@
         <p><strong>Balance:</strong> {{ balance }}</p>
         <p><strong>Safety Score:</strong> {{ score }}</p>
       <p><strong>Safety Score:</strong> {{ score }}</p>
+      <p><a href="/export-iso?wallet={{ wallet }}" target="_blank" style="color:limegreen;">⬇️ Export ISO 20022 (XML)</a></p>
     </div>
       <!-- Show last 5 transactions -->
       {% if last5tx %}
