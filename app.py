@@ -42,6 +42,7 @@ def home():
             result["balance"] = wallet_data.get("balance")
             result["tx_count"] = wallet_data.get("tx_count")
             result["wallet_age"] = wallet_data.get("wallet_age")
+            result["last5tx"] = wallet_data.get("last5tx", [])
             result["ai_score"], result["reason"] = calculate_risk_score(wallet_data)
         else:
             result["error"] = "Wallet not found or API error."
