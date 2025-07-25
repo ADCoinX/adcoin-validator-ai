@@ -1,88 +1,14 @@
-from flask import Flask, render_template, request
-import requests
-import re
-import os
-from datetime import datetime
+from flask import Flask, render_template, request, send_file
 from dotenv import load_dotenv
+from api_handler import get_wallet_data
+from ai_risk import calculate_risk_score
+from iso_export import generate_iso_xml
+import os
+import io
+from datetime import datetime
 
-# Load .env (for local). On Render, ENV VAR injected by platform.
 load_dotenv()
-
-ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
-
 app = Flask(__name__)
-
-def detect_network(wallet):
-    if wallet.startswith("0x") and len(wallet) == 42:
-        return "Ethereum"
-    elif wallet.startswith("T") and len(wallet) == 34:
-        return "TRON"
-    elif wallet.startswith("1") or wallet.startswith("3") or wallet.startswith("bc1"):
-        return "Bitcoin"
-    elif wallet.startswith("bnb") and len(wallet) > 30:
-        return "BSC"
-    elif wallet.startswith("r") and len(wallet) > 20:
-        return "XRP"
-    elif len(wallet) == 44 and re.match(r"^[1-9A-HJ-NP-Za-km-z]+$", wallet):
-        return "Solana"
-    else:
-        return "Unknown"
-
-def get_balance_eth(wallet):
-    url = f"https://api.etherscan.io/api?module=account&action=balance&address={wallet}&tag=latest&apikey={ETHERSCAN_API_KEY}"
-    try:
-        res = requests.get(url).json()
-        balance = int(res['result']) / 1e18
-        return f"{balance:.5f} ETH"
-    except:
-        return "N/A"
-
-def get_last5_tx_eth(wallet):
-    url = f"https://api.etherscan.io/api?module=account&action=txlist&address={wallet}&sort=desc&apikey={ETHERSCAN_API_KEY}"
-    try:
-        res = requests.get(url).json()
-        txs = res.get('result', [])[:5]
-        result = []
-        for tx in txs:
-            value_eth = int(tx['value']) / 1e18
-            result.append({
-                "hash": tx["hash"],
-                "time": datetime.fromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M:%S'),
-                "from": tx["from"],
-                "to": tx["to"],
-                "value": f"{value_eth:.5f} ETH"
-            })
-        return result
-    except:
-        return []
-
-def get_balance_tron(wallet):
-    url = f"https://apilist.tronscan.org/api/account?address={wallet}"
-    try:
-        res = requests.get(url).json()
-        balance = res.get("balance", 0) / 1e6
-        return f"{balance:.2f} TRX"
-    except:
-        return "N/A"
-
-def get_last5_tx_tron(wallet):
-    url = f"https://apilist.tronscan.org/api/transaction?sort=-timestamp&count=true&limit=5&start=0&address={wallet}"
-    try:
-        res = requests.get(url).json()
-        txs = res.get('data', [])
-        result = []
-        for tx in txs:
-            value = tx.get('amount', 0) / 1e6 if 'amount' in tx else 0
-            result.append({
-                "hash": tx["hash"],
-                "time": datetime.fromtimestamp(tx["timestamp"]/1000).strftime('%Y-%m-%d %H:%M:%S'),
-                "from": tx["ownerAddress"] if "ownerAddress" in tx else "",
-                "to": tx["toAddress"] if "toAddress" in tx else "",
-                "value": f"{value:.2f} TRX"
-            })
-        return result
-    except:
-        return []
 
 def get_unique_user_count():
     try:
@@ -93,62 +19,48 @@ def get_unique_user_count():
     except:
         return 0
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
-    user_count = get_unique_user_count()
-    return render_template("index.html", user_count=user_count)
-
-@app.route("/validate", methods=["POST"])
-def validate():
-    wallet = request.form.get("wallet")
-    network = detect_network(wallet)
-
-    # Log user IP & wallet
-    user_ip = request.remote_addr
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    with open("user_log.txt", "a") as f:
-        f.write(f"{timestamp} | {user_ip} | {wallet}\n")
+    result = {}
     user_count = get_unique_user_count()
 
-    balance = "N/A"
-    last5tx = []
+    if request.method == "POST":
+        address = request.form["wallet"].strip()
+        result["address"] = address
 
-    if network == "Ethereum":
-        balance = get_balance_eth(wallet)
-        last5tx = get_last5_tx_eth(wallet)
-    elif network == "TRON":
-        balance = get_balance_tron(wallet)
-        last5tx = get_last5_tx_tron(wallet)
+        # Log IP + Wallet
+        user_ip = request.remote_addr
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        with open("user_log.txt", "a") as f:
+            f.write(f"{timestamp} | {user_ip} | {address}\n")
 
-    score = "Low Risk ✅" if balance != "N/A" else "Unknown ⚠️"
+        # Detect + Fetch
+        result["network"], wallet_data = get_wallet_data(address)
+        result["user_count"] = user_count
 
-    return render_template(
-        "index.html",
-        wallet=wallet,
-        network=network,
-        balance=balance,
-        score=score,
-        last5tx=last5tx,
-        user_count=user_count
-    )
+        if wallet_data:
+            result["balance"] = wallet_data.get("balance")
+            result["tx_count"] = wallet_data.get("tx_count")
+            result["wallet_age"] = wallet_data.get("wallet_age")
+            result["ai_score"], result["reason"] = calculate_risk_score(wallet_data)
+        else:
+            result["error"] = "Wallet not found or API error."
+
+    return render_template("index.html", result=result, user_count=user_count)
+
 @app.route("/export-iso", methods=["GET"])
 def export_iso():
     wallet = request.args.get("wallet")
-    network = detect_network(wallet)
+    network, wallet_data = get_wallet_data(wallet)
 
-    if network == "Ethereum":
-        balance = get_balance_eth(wallet)
-    elif network == "TRON":
-        balance = get_balance_tron(wallet)
+    if wallet_data:
+        balance = wallet_data.get("balance")
     else:
         balance = "N/A"
-
-    from iso_export import generate_iso_xml
-    import io
-    from flask import send_file
 
     xml_data = generate_iso_xml(wallet, network, balance)
     return send_file(io.BytesIO(xml_data.encode()), mimetype='application/xml',
                      as_attachment=True, download_name=f"{wallet}_ISO20022.xml")
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
