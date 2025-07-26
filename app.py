@@ -10,31 +10,36 @@ from datetime import datetime
 load_dotenv()
 app = Flask(__name__)
 
-def get_unique_user_count():
+# ✅ Kira unique wallet dari log file
+def get_unique_wallet_count():
     try:
         with open("user_log.txt", "r") as f:
             lines = f.readlines()
-        unique_ips = set([line.split('|')[1].strip() for line in lines])
-        return len(unique_ips)
+        addresses = set()
+        for line in lines:
+            parts = line.strip().split('|')
+            if len(parts) >= 3:
+                addresses.add(parts[2].strip())  # wallet is at position 2
+        return len(addresses)
     except:
         return 0
 
 @app.route("/", methods=["GET", "POST"])
 def home():
     result = {}
-    user_count = get_unique_user_count()
+    user_count = get_unique_wallet_count()
 
     if request.method == "POST":
         address = request.form["wallet"].strip()
         result["address"] = address
 
-        # Log IP + Wallet
+        # ✅ Log IP + Wallet (kekal cara kau)
         user_ip = request.remote_addr
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open("user_log.txt", "a") as f:
             f.write(f"{timestamp} | {user_ip} | {address}\n")
 
-        # Detect + Fetch
+        # ✅ Fetch wallet data
         result["network"], wallet_data = get_wallet_data(address)
         result["user_count"] = user_count
 
