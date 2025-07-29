@@ -125,12 +125,29 @@ def fetch_solana_data(address):
 
 # ----------- XRP ----------
 def fetch_xrp_data(address):
-    url = f"https://api.xrpscan.com/api/v1/account/{address}"
-    res = requests.get(url).json()
-    balance = float(res.get("xrpBalance", 0))
-    tx_count = res.get("transactionCount", 0)
-    return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
-import requests
+    try:
+        url = f"https://api.xrpscan.com/api/v1/account/{address}"
+        res = requests.get(url)
+        
+        if res.status_code != 200:
+            print("❌ XRP API Error:", res.status_code)
+            return {}
+
+        data = res.json()
+        balance = float(data.get("xrpBalance", 0))
+        tx_count = data.get("transactionCount", 0)
+        
+        # Tiada maklumat wallet age dan transaksi detail dari XRPSCAN
+        return {
+            "balance": balance,
+            "tx_count": tx_count,
+            "wallet_age": 0,
+            "last5tx": []
+        }
+
+    except Exception as e:
+        print("❌ XRP Fetch Error:", str(e))
+        return {}
 
 def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
     url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
