@@ -132,7 +132,7 @@ def fetch_xrp_data(address):
         response = requests.get(url)
         data = response.json()
 
-        balance = float(data.get("balance", 0)) / 1_000_000  # Convert drops to XRP
+        balance = float(data.get("balance", 0)) / 1_000_000  # Convert from drops to XRP
         tx_count = data.get("transaction_count", 0)
 
         return {
