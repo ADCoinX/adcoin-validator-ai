@@ -124,30 +124,31 @@ def fetch_solana_data(address):
     return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
 # ----------- XRP ----------
-def fetch_xrp_data(address):
-    url = "https://s1.ripple.com:51234"
-    payload = {
-        "method": "account_info",
-        "params": [
-            {
-                "account": address,
-                "strict": True,
-                "ledger_index": "validated",
-                "queue": True
-            }
-        ]
-    }
+import requests
 
+def fetch_xrp_data(address):
     try:
-        response = requests.post(url, json=payload).json()
-        result = response.get("result", {})
-        account_data = result.get("account_data", {})
-        balance = int(account_data.get("Balance", 0)) / 1e6
-        tx_count = 0  # Optional, XRP Ledger doesn't provide tx count easily
-        return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
+        url = f"https://api.xrpscan.com/api/v1/account/{address}"
+        response = requests.get(url)
+        data = response.json()
+
+        balance = float(data.get("balance", 0)) / 1_000_000  # Convert drops to XRP
+        tx_count = data.get("transaction_count", 0)
+
+        return {
+            "balance": balance,
+            "tx_count": tx_count,
+            "wallet_age": 0,
+            "last5tx": []
+        }
     except Exception as e:
-        print("❌ XRP Error:", str(e))
-        return {}
+        print("❌ XRP XRPSCAN Error:", str(e))
+        return {
+            "balance": 0,
+            "tx_count": 0,
+            "wallet_age": 0,
+            "last5tx": []
+        }
 
 def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
     url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
