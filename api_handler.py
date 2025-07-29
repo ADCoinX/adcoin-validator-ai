@@ -126,43 +126,39 @@ def fetch_solana_data(address):
 # ----------- XRP ----------
 def fetch_xrp_data(address):
     try:
-        url = f"https://api.xrpscan.com/api/v1/account/{address}"
-        res = requests.get(url, timeout=10)
+        url = f"https://s1.ripple.com:51234"
+        headers = {"Content-Type": "application/json"}
+        payload = {
+            "method": "account_info",
+            "params": [
+                {
+                    "account": address,
+                    "ledger_index": "validated",
+                    "strict": True
+                }
+            ]
+        }
 
-        # Kalau XRPSCAN return error, tangkap status code
+        res = requests.post(url, headers=headers, json=payload)
+
         if res.status_code != 200:
-            print(f"❌ XRP API Error: {res.status_code}")
-            return {
-                "balance": 0.0,
-                "tx_count": 0,
-                "wallet_age": 0,
-                "last5tx": []
-            }
+            print("❌ XRP Ledger API Error", res.status_code)
+            return {}
 
         data = res.json()
-
-        balance = float(data.get("xrpBalance", 0))
-        tx_count = data.get("transactionCount", 0)
+        account_data = data["result"].get("account_data", {})
+        balance = float(account_data.get("Balance", 0)) / 1_000_000  # XRP in drops
 
         return {
             "balance": balance,
-            "tx_count": tx_count,
-            "wallet_age": 0,     # XRPSCAN tak sedia maklumat umur wallet
-            "last5tx": []        # XRPSCAN API tak sedia detail tx public
+            "tx_count": 0,  # XRP Ledger REST doesn't give tx count directly
+            "wallet_age": 0,  # Wallet age logic requires extra calls
+            "last5tx": []
         }
 
-    except requests.exceptions.Timeout:
-        print("❌ XRP API Timeout")
     except Exception as e:
-        print("❌ XRP Fetch Error:", str(e))
-
-    # Fallback kalau error
-    return {
-        "balance": 0.0,
-        "tx_count": 0,
-        "wallet_age": 0,
-        "last5tx": []
-    }
+        print("❌ XRP Ledger API Exception", str(e))
+        return {}
 
 def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
     url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
