@@ -125,39 +125,28 @@ def fetch_solana_data(address):
 
 # ----------- XRP ----------
 def fetch_xrp_data(address):
+    url = "https://s1.ripple.com:51234"
+    payload = {
+        "method": "account_info",
+        "params": [
+            {
+                "account": address,
+                "strict": True,
+                "ledger_index": "validated",
+                "queue": True
+            }
+        ]
+    }
+
     try:
-        url = f"https://s1.ripple.com:51234"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "method": "account_info",
-            "params": [
-                {
-                    "account": address,
-                    "ledger_index": "validated",
-                    "strict": True
-                }
-            ]
-        }
-
-        res = requests.post(url, headers=headers, json=payload)
-
-        if res.status_code != 200:
-            print("❌ XRP Ledger API Error", res.status_code)
-            return {}
-
-        data = res.json()
-        account_data = data["result"].get("account_data", {})
-        balance = float(account_data.get("Balance", 0)) / 1_000_000  # XRP in drops
-
-        return {
-            "balance": balance,
-            "tx_count": 0,  # XRP Ledger REST doesn't give tx count directly
-            "wallet_age": 0,  # Wallet age logic requires extra calls
-            "last5tx": []
-        }
-
+        response = requests.post(url, json=payload).json()
+        result = response.get("result", {})
+        account_data = result.get("account_data", {})
+        balance = int(account_data.get("Balance", 0)) / 1e6
+        tx_count = 0  # Optional, XRP Ledger doesn't provide tx count easily
+        return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
     except Exception as e:
-        print("❌ XRP Ledger API Exception", str(e))
+        print("❌ XRP Error:", str(e))
         return {}
 
 def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
