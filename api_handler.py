@@ -124,8 +124,6 @@ def fetch_solana_data(address):
     return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
 # ----------- XRP ----------
-import requests
-
 def fetch_xrp_data(address):
     try:
         url = f"https://api.xrpscan.com/api/v1/account/{address}"
