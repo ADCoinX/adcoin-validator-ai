@@ -127,27 +127,19 @@ def fetch_solana_data(address):
 def fetch_xrp_data(address):
     try:
         url = f"https://api.xrpscan.com/api/v1/account/{address}"
-        res = requests.get(url)
+        res = requests.get(url, timeout=10)
 
+        # Kalau XRPSCAN return error, tangkap status code
         if res.status_code != 200:
-            print("❌ XRP API Error:", res.status_code)
+            print(f"❌ XRP API Error: {res.status_code}")
             return {
-                "balance": 0,
+                "balance": 0.0,
                 "tx_count": 0,
                 "wallet_age": 0,
-                "last5tx": [],
+                "last5tx": []
             }
 
-        try:
-            data = res.json()
-        except Exception as e:
-            print("❌ XRP JSON Error:", str(e))
-            return {
-                "balance": 0,
-                "tx_count": 0,
-                "wallet_age": 0,
-                "last5tx": [],
-            }
+        data = res.json()
 
         balance = float(data.get("xrpBalance", 0))
         tx_count = data.get("transactionCount", 0)
@@ -155,18 +147,22 @@ def fetch_xrp_data(address):
         return {
             "balance": balance,
             "tx_count": tx_count,
-            "wallet_age": 0,
-            "last5tx": [],
+            "wallet_age": 0,     # XRPSCAN tak sedia maklumat umur wallet
+            "last5tx": []        # XRPSCAN API tak sedia detail tx public
         }
 
+    except requests.exceptions.Timeout:
+        print("❌ XRP API Timeout")
     except Exception as e:
-        print("❌ XRP Fetch Exception:", str(e))
-        return {
-            "balance": 0,
-            "tx_count": 0,
-            "wallet_age": 0,
-            "last5tx": [],
-        }
+        print("❌ XRP Fetch Error:", str(e))
+
+    # Fallback kalau error
+    return {
+        "balance": 0.0,
+        "tx_count": 0,
+        "wallet_age": 0,
+        "last5tx": []
+    }
 
 def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
     url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
