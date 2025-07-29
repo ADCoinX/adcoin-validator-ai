@@ -8,20 +8,49 @@ TRONGRID_API_KEY = os.getenv("TRONGRID_API_KEY")
 HELIUS_API_KEY = os.getenv("HELIUS_API_KEY")
 
 def get_wallet_data(address):
-    if address.startswith("0x") and len(address) == 42:
-        return "Ethereum", fetch_eth_data(address)
+    if is_blacklisted(address):
+        result = ("Scam Wallet", {})
+    elif address.startswith("0x") and len(address) == 42:
+        result = ("Ethereum", fetch_eth_data(address))
     elif address.startswith("T") and len(address) == 34:
-        return "TRON", fetch_tron_data(address)
+        result = ("TRON", fetch_tron_data(address))
     elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
-        return "Bitcoin", fetch_btc_data(address)
-    elif address.startswith("B") or address.startswith("bnb"):
-        return "Binance Smart Chain", fetch_bsc_data(address)
-    elif address.startswith("S") or len(address) in [43, 44]:
-        return "Solana", fetch_solana_data(address)
+        result = ("Bitcoin", fetch_btc_data(address))
+    elif address.startswith("bnb"):
+        result = ("Binance Smart Chain", fetch_bsc_data(address))
+    elif address.startswith("5") or len(address) in [43, 44]:
+        result = ("Solana", fetch_solana_data(address))
     elif address.startswith("r") and len(address) >= 25:
-        return "XRP", fetch_xrp_data(address)
+        result = ("XRP", fetch_xrp_data(address))
     else:
-        return "Unknown", {}
+        result = ("Unknown", {})
+
+    # -------------------------
+    # ✅ AI + ISO + Google Sheet
+    data = result[1]
+
+    risk_score = calculate_risk_score(
+        data.get("balance", 0),
+        data.get("tx_count", 0),
+        data.get("wallet_age", 0)
+    )
+
+    send_to_google_sheet(
+        address,
+        "Valid" if data else "Invalid",
+        risk_score,
+        result[0]
+    )
+
+    generate_iso_xml(
+        address,
+        "Valid" if data else "Invalid",
+        risk_score,
+        result[0]
+    )
+    # -------------------------
+
+    return result
 
 # ----------- Ethereum ----------
 def fetch_eth_data(address):
@@ -101,3 +130,41 @@ def fetch_xrp_data(address):
     balance = float(res.get("xrpBalance", 0))
     tx_count = res.get("transactionCount", 0)
     return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
+import requests
+
+def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
+    url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
+
+    payload = {
+        "wallet": wallet,
+        "result": result,
+        "risk_score": risk_score,
+        "network": network,
+        "ip": ip or "Unknown",
+        "ai_comment": ai_comment,
+        "blacklisted": blacklisted
+    }
+
+    try:
+        response = requests.post(url, json=payload)
+        print("✅ Sheet Log:", response.text)
+    except Exception as e:
+        print("❌ Sheet Log Error:", str(e))
+
+# ----------- XRP ----------
+def fetch_xrp_data(address):
+    ...
+    return {...}
+
+# ✅ TAMBAH SEMUA YANG INI KAT BAWAH SEKALI
+# 🔐 Semak blacklist
+def is_blacklisted(wallet):
+    ...
+
+# 🤖 AI Risk Score Calculator
+def calculate_risk_score(balance, tx_count, wallet_age):
+    ...
+
+# 🧾 ISO 20022 Export
+def generate_iso_xml(wallet, result, risk_score, network):
+    ...
