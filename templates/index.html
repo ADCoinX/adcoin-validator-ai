@@ -11,8 +11,13 @@
   <div class="container">
     <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
     <h1>ADC CRYPTOGUARD</h1>
-    
-    <!-- ✅ FORM action dibetulkan ke "/" -->
+
+    <!-- ✅ Paparan Jumlah User -->
+    <p style="color: #00ffcc; font-weight: bold; margin-top: -10px;">
+      ✅ {{ user_count }} users have tested this AI Wallet Validator!
+    </p>
+
+    <!-- ✅ Form validate wallet -->
     <form method="POST" action="/">
       <input type="text" name="wallet" placeholder="Enter wallet address..." required />
       <button type="submit">Validate Wallet</button>
@@ -57,10 +62,6 @@
     {% endif %}
     {% endif %}
 
-    <div style="margin-top:30px;color:#00c783;">
-      <b>{{ user_count }}</b> users have tested this AI Wallet Validator!
-    </div>
-
     <p class="disclaimer">
       ⚠️ Disclaimer: This tool is for informational purposes only. <br>
       Risk analysis is based on public data. Final decisions are the responsibility of the user.
@@ -74,8 +75,5 @@
   <footer style="text-align:center; padding:10px; font-size:14px; color:#ccc;">
     Powered by <b>ADCoin Validator</b> | Developed by <b>ADCX Lab</b> © 2025
   </footer>
-  <p style="margin-top: 30px; font-weight: bold;">
-  ✅ Total demo users so far: {{ user_count }}
-</p>
 </body>
 </html>
