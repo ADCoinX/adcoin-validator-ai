@@ -29,7 +29,10 @@ def get_wallet_data(address):
             bal_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
             tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
             bal = requests.get(bal_url).json()
-            data["balance"] = float(bal.get('result', 0)) / 1e18
+            if bal.get("status") == "1":
+                data["balance"] = float(bal.get("result", 0)) / 1e18
+            else:
+                data["reason"] += " | ETH balance failed"
 
             tx = requests.get(tx_url).json()
             txs = tx.get("result", [])
@@ -44,7 +47,7 @@ def get_wallet_data(address):
                     "value": str(int(t["value"]) / 1e18) + " ETH"
                 } for t in txs[:5]]
         except:
-            data["reason"] = "Error fetching Ethereum data"
+            data["reason"] += " | ETH error"
 
     # === TRON ===
     elif address.startswith("T"):
@@ -54,7 +57,7 @@ def get_wallet_data(address):
             bal_url = f"https://api.trongrid.io/v1/accounts/{address}"
             tx_url = f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc"
             bal = requests.get(bal_url, headers=headers).json()
-            data["balance"] = float(bal['data'][0].get('balance', 0)) / 1e6
+            data["balance"] = float(bal.get('data', [{}])[0].get('balance', 0)) / 1e6
 
             tx = requests.get(tx_url, headers=headers).json()
             txs = tx.get("data", [])
@@ -67,7 +70,7 @@ def get_wallet_data(address):
                 "value": "-"
             } for t in txs]
         except:
-            data["reason"] = "Error fetching TRON data"
+            data["reason"] += " | TRON error"
 
     # === BITCOIN ===
     elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
@@ -86,7 +89,7 @@ def get_wallet_data(address):
                 "value": str(tx["value"] / 1e8) + " BTC"
             } for tx in txs[:5]]
         except:
-            data["reason"] = "Error fetching Bitcoin data"
+            data["reason"] += " | BTC error"
 
     # === SOLANA ===
     elif len(address) >= 32:
@@ -101,7 +104,6 @@ def get_wallet_data(address):
             tx = requests.get(tx_url, headers=headers).json()
             if isinstance(tx, list):
                 data["tx_count"] = len(tx)
-                data["last5tx"] = []
                 for t in tx:
                     if t.get("nativeTransfers"):
                         n = t["nativeTransfers"][0]
@@ -113,7 +115,7 @@ def get_wallet_data(address):
                             "value": str(n.get("amount", 0) / 1e9) + " SOL"
                         })
         except:
-            data["reason"] = "Error fetching Solana data"
+            data["reason"] += " | SOL error"
 
     # === XRP ===
     elif address.startswith("r"):
@@ -135,7 +137,7 @@ def get_wallet_data(address):
                     "value": str(t.get("amount", "0")) + " XRP"
                 } for t in tx]
         except:
-            data["reason"] = "Error fetching XRP data"
+            data["reason"] += " | XRP error"
 
     # === AI Scoring ===
     data["ai_score"], data["reason"] = calculate_risk_score(data)
