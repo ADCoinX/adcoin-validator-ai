@@ -2,6 +2,7 @@ import requests
 import os
 import time
 from datetime import datetime
+from blacklist import is_blacklisted
 
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 TRONGRID_API_KEY = os.getenv("TRONGRID_API_KEY")
