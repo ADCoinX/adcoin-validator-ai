@@ -124,7 +124,7 @@ def fetch_btc_data(address):
         print("BTC API error:", str(e))
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# BSC (placeholder for now)
+# BSC (placeholder)
 def fetch_bsc_data(address):
     return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
@@ -140,7 +140,7 @@ def fetch_solana_data(address):
         print("Solana API error:", str(e))
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# XRP (xrpscan.com)
+# XRP
 def fetch_xrp_data(address):
     try:
         url = f"https://api.xrpscan.com/api/v1/account/{address}"
