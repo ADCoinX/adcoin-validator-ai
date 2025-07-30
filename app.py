@@ -5,6 +5,7 @@ from ai_risk import calculate_risk_score
 from iso_export import generate_iso_xml
 import os
 import io
+import json
 from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -12,11 +13,13 @@ from oauth2client.service_account import ServiceAccountCredentials
 load_dotenv()
 app = Flask(__name__)
 
-# ✅ Kira unique IP dari Google Sheet
+# ✅ Guna ENV dari Render (JSON string)
 def get_unique_user_count():
     try:
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+        creds_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        creds_dict = json.loads(creds_json)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         sheet = client.open("ADC_CryptoGuard_logs").sheet1
 
@@ -32,7 +35,6 @@ def get_unique_user_count():
         print(f"❌ Error getting user count: {e}")
         return 0
 
-# ✅ Halaman Utama Validator
 @app.route("/", methods=["GET", "POST"])
 def home():
     result = {}
@@ -42,13 +44,11 @@ def home():
         address = request.form["wallet"].strip()
         result["address"] = address
 
-        # Log IP + Wallet ke local file (backup)
         user_ip = request.remote_addr
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         with open("user_log.txt", "a") as f:
             f.write(f"{timestamp} | {user_ip} | {address}\n")
 
-        # Dapatkan data wallet
         result["network"], wallet_data = get_wallet_data(address)
         result["user_count"] = user_count
 
@@ -63,7 +63,6 @@ def home():
 
     return render_template("index.html", result=result, user_count=user_count)
 
-# ✅ ISO 20022 Export Route
 @app.route("/export-iso", methods=["GET"])
 def export_iso():
     wallet = request.args.get("wallet")
@@ -78,6 +77,5 @@ def export_iso():
     return send_file(io.BytesIO(xml_data.encode()), mimetype='application/xml',
                      as_attachment=True, download_name=f"{wallet}_ISO20022.xml")
 
-# ✅ Run Flask Server
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
