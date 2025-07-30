@@ -168,19 +168,30 @@ def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_commen
         print("❌ Sheet Log Error:", str(e))
 
 # ----------- XRP ----------
-def fetch_xrp_data(address):
-    ...
-    return {...}
+import requests
 
-# ✅ TAMBAH SEMUA YANG INI KAT BAWAH SEKALI
-# 🔐 Semak blacklist
-def is_blacklisted(wallet):
-    ...
+def validate_xrp_wallet(address):
+    try:
+        # Check if valid XRP address
+        if not address.startswith('r') or len(address) < 25:
+            return {"network": "XRP", "status": "Invalid", "error": "Invalid XRP address format"}
 
-# 🤖 AI Risk Score Calculator
-def calculate_risk_score(balance, tx_count, wallet_age):
-    ...
+        # XRPScan API endpoint
+        url = f"https://api.xrpscan.com/api/v1/account/{address}"
 
-# 🧾 ISO 20022 Export
-def generate_iso_xml(wallet, result, risk_score, network):
-    ...
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            return {
+                "network": "XRP",
+                "address": address,
+                "status": "Valid",
+                "balance": data.get("balance", "0"),
+                "created": data.get("created", "-"),
+                "flags": data.get("flags", {}),
+                "tx_count": data.get("tx_count", 0)
+            }
+        else:
+            return {"network": "XRP", "address": address, "status": "Not Found"}
+    except Exception as e:
+        return {"network": "XRP", "status": "Error", "error": str(e)}
