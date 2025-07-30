@@ -28,20 +28,15 @@ def get_wallet_data(address):
     else:
         result = ("Unknown", {})
 
-    # --------------- NO GOOGLE SHEET ---------------
     data = result[1]
-
     risk_score, reason = calculate_risk_score(data)
-    # Kalau nak log local ke .txt boleh letak sini, tapi **Google Sheet totally OFF**
 
-    # ISO generator boleh keep (ni local function, bukan external)
     generate_iso_xml(
         address,
         "Valid" if data else "Invalid",
         risk_score,
         result[0]
     )
-    # -----------------------------------------------
 
     return result
 
@@ -50,10 +45,18 @@ def fetch_eth_data(address):
     tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
     balance_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
 
-    tx = requests.get(tx_url).json()
-    tx_list = tx.get("result", [])[:5]
+    tx_resp = requests.get(tx_url).json()
+    tx_list = tx_resp.get("result", [])[:5]
 
-    balance_wei = int(requests.get(balance_url).json().get("result", 0))
+    balance_resp = requests.get(balance_url).json()
+    if balance_resp.get("status") != "1":
+        print("⚠️ ETH API Error:", balance_resp)
+        return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
+
+    try:
+        balance_wei = int(balance_resp.get("result", "0"))
+    except ValueError:
+        balance_wei = 0
     balance_eth = balance_wei / 1e18
 
     last5tx = []
@@ -71,42 +74,60 @@ def fetch_eth_data(address):
             })
 
     age_days = int((time.time() - created_at) / 86400) if created_at else 0
-    return {"balance": balance_eth, "tx_count": len(tx_list), "wallet_age": age_days, "last5tx": last5tx}
+    return {
+        "balance": balance_eth,
+        "tx_count": len(tx_list),
+        "wallet_age": age_days,
+        "last5tx": last5tx
+    }
 
 # ----------- TRON ----------
 def fetch_tron_data(address):
-    headers = {"Authorization": f"Bearer {TRONGRID_API_KEY}"}
-    info_url = f"https://api.trongrid.io/v1/accounts/{address}"
-    tx_url = f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc"
+    try:
+        headers = {"Authorization": f"Bearer {TRONGRID_API_KEY}"}
+        info_url = f"https://api.trongrid.io/v1/accounts/{address}"
+        tx_url = f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc"
 
-    res = requests.get(info_url, headers=headers).json()
-    balance = int(res.get("data", [{}])[0].get("balance", 0)) / 1e6
-    created_at = res.get("data", [{}])[0].get("create_time", 0)
+        res = requests.get(info_url, headers=headers).json()
+        balance = int(res.get("data", [{}])[0].get("balance", 0)) / 1e6
+        created_at = res.get("data", [{}])[0].get("create_time", 0)
 
-    tx_data = requests.get(tx_url, headers=headers).json()
-    tx_list = tx_data.get("data", [])
+        tx_data = requests.get(tx_url, headers=headers).json()
+        tx_list = tx_data.get("data", [])
 
-    last5tx = []
-    for tx in tx_list:
-        amount = int(tx.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("amount", 0)) / 1e6
-        last5tx.append({
-            "hash": tx["txID"],
-            "time": datetime.fromtimestamp(tx["block_timestamp"] / 1000).strftime('%Y-%m-%d %H:%M:%S'),
-            "from": tx["raw_data"]["contract"][0]["parameter"]["value"].get("owner_address", ""),
-            "to": tx["raw_data"]["contract"][0]["parameter"]["value"].get("to_address", ""),
-            "value": f"{amount:.2f} TRX"
-        })
+        last5tx = []
+        for tx in tx_list:
+            amount = int(tx.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("amount", 0)) / 1e6
+            last5tx.append({
+                "hash": tx["txID"],
+                "time": datetime.fromtimestamp(tx["block_timestamp"] / 1000).strftime('%Y-%m-%d %H:%M:%S'),
+                "from": tx["raw_data"]["contract"][0]["parameter"]["value"].get("owner_address", ""),
+                "to": tx["raw_data"]["contract"][0]["parameter"]["value"].get("to_address", ""),
+                "value": f"{amount:.2f} TRX"
+            })
 
-    age_days = int((time.time() - created_at / 1000) / 86400) if created_at else 0
-    return {"balance": balance, "tx_count": len(tx_list), "wallet_age": age_days, "last5tx": last5tx}
+        age_days = int((time.time() - created_at / 1000) / 86400) if created_at else 0
+        return {
+            "balance": balance,
+            "tx_count": len(tx_list),
+            "wallet_age": age_days,
+            "last5tx": last5tx
+        }
+    except Exception as e:
+        print("❌ TRON API error:", str(e))
+        return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
 # ----------- Bitcoin ----------
 def fetch_btc_data(address):
-    url = f"https://blockstream.info/api/address/{address}"
-    res = requests.get(url).json()
-    balance = int(res.get("chain_stats", {}).get("funded_txo_sum", 0)) / 1e8
-    tx_count = res.get("chain_stats", {}).get("tx_count", 0)
-    return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
+    try:
+        url = f"https://blockstream.info/api/address/{address}"
+        res = requests.get(url).json()
+        balance = int(res.get("chain_stats", {}).get("funded_txo_sum", 0)) / 1e8
+        tx_count = res.get("chain_stats", {}).get("tx_count", 0)
+        return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
+    except Exception as e:
+        print("❌ BTC API error:", str(e))
+        return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
 # ----------- BSC ----------
 def fetch_bsc_data(address):
@@ -123,7 +144,7 @@ def fetch_xrp_data(address):
         response = requests.get(url)
         data = response.json()
 
-        balance = float(data.get("balance", 0)) / 1_000_000  # Convert from drops to XRP
+        balance = float(data.get("balance", 0)) / 1_000_000
         tx_count = data.get("transaction_count", 0)
 
         return {
@@ -134,39 +155,4 @@ def fetch_xrp_data(address):
         }
     except Exception as e:
         print("❌ XRP XRPSCAN Error:", str(e))
-        return {
-            "balance": 0,
-            "tx_count": 0,
-            "wallet_age": 0,
-            "last5tx": []
-        }
-
-# Buang terus Google Sheet logger!
-# def send_to_google_sheet(...) ... [DISABLED]
-
-# ----------- XRP validator legacy ----------
-def validate_xrp_wallet(address):
-    try:
-        # Check if valid XRP address
-        if not address.startswith('r') or len(address) < 25:
-            return {"network": "XRP", "status": "Invalid", "error": "Invalid XRP address format"}
-
-        # XRPScan API endpoint
-        url = f"https://api.xrpscan.com/api/v1/account/{address}"
-
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            return {
-                "network": "XRP",
-                "address": address,
-                "status": "Valid",
-                "balance": data.get("balance", "0"),
-                "created": data.get("created", "-"),
-                "flags": data.get("flags", {}),
-                "tx_count": data.get("tx_count", 0)
-            }
-        else:
-            return {"network": "XRP", "address": address, "status": "Not Found"}
-    except Exception as e:
-        return {"network": "XRP", "status": "Error", "error": str(e)}
+        return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
