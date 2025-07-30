@@ -12,15 +12,18 @@ def home():
     if request.method == 'POST':
         address = request.form['wallet'].strip()
         result = get_wallet_data(address)
-        log_user(address, result.get("network", "Unknown"))
     return render_template('index.html', result=result)
 
 @app.route('/export-iso')
 def export_iso():
     wallet = request.args.get("wallet")
     xml_data = generate_iso_xml(wallet)
-    return send_file(io.BytesIO(xml_data.encode()), mimetype='application/xml',
-                     as_attachment=True, download_name=f'{wallet}_iso20022.xml')
+    return send_file(
+        io.BytesIO(xml_data.encode()),
+        mimetype='application/xml',
+        as_attachment=True,
+        download_name=f'{wallet}_iso20022.xml'
+    )
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 1000))
