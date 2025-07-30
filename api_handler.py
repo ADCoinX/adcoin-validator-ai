@@ -1,3 +1,4 @@
+
 import requests
 import os
 import time
@@ -8,6 +9,7 @@ from iso_export import generate_iso_xml
 
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 TRONGRID_API_KEY = os.getenv("TRONGRID_API_KEY")
+BLOCKCYPHER_API_KEY = os.getenv("BLOCKCYPHER_API_KEY")
 HELIUS_API_KEY = os.getenv("HELIUS_API_KEY")
 
 def get_wallet_data(address):
@@ -21,7 +23,7 @@ def get_wallet_data(address):
         result = ("Bitcoin", fetch_btc_data(address))
     elif address.startswith("bnb"):
         result = ("Binance Smart Chain", fetch_bsc_data(address))
-    elif address.startswith("5") or len(address) in [43, 44]:
+    elif len(address) in [43, 44] or address.startswith("5"):
         result = ("Solana", fetch_solana_data(address))
     elif address.startswith("r") and len(address) >= 25:
         result = ("XRP", fetch_xrp_data(address))
@@ -30,17 +32,11 @@ def get_wallet_data(address):
 
     data = result[1]
     risk_score, reason = calculate_risk_score(data)
-
-    generate_iso_xml(
-        address,
-        "Valid" if data else "Invalid",
-        risk_score,
-        result[0]
-    )
+    generate_iso_xml(address, "Valid" if data else "Invalid", risk_score, result[0])
 
     return result
 
-# ----------- Ethereum ----------
+# ETH
 def fetch_eth_data(address):
     tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
     balance_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
@@ -50,21 +46,18 @@ def fetch_eth_data(address):
 
     balance_resp = requests.get(balance_url).json()
     if balance_resp.get("status") != "1":
-        print("⚠️ ETH API Error:", balance_resp)
+        print("ETH API Error:", balance_resp)
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-    try:
-        balance_wei = int(balance_resp.get("result", "0"))
-    except ValueError:
-        balance_wei = 0
+    balance_wei = int(balance_resp.get("result", "0"))
     balance_eth = balance_wei / 1e18
 
     last5tx = []
     created_at = None
     if tx_list:
-        created_at = int(tx_list[-1]['timeStamp'])
+        created_at = int(tx_list[-1]["timeStamp"])
         for tx in tx_list:
-            value_eth = int(tx['value']) / 1e18
+            value_eth = int(tx["value"]) / 1e18
             last5tx.append({
                 "hash": tx["hash"],
                 "time": datetime.fromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M:%S'),
@@ -81,7 +74,7 @@ def fetch_eth_data(address):
         "last5tx": last5tx
     }
 
-# ----------- TRON ----------
+# TRON
 def fetch_tron_data(address):
     try:
         headers = {"Authorization": f"Bearer {TRONGRID_API_KEY}"}
@@ -114,45 +107,46 @@ def fetch_tron_data(address):
             "last5tx": last5tx
         }
     except Exception as e:
-        print("❌ TRON API error:", str(e))
+        print("TRON API error:", str(e))
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# ----------- Bitcoin ----------
+# BTC
 def fetch_btc_data(address):
     try:
-        url = f"https://blockstream.info/api/address/{address}"
+        url = f"https://api.blockcypher.com/v1/btc/main/addrs/{address}/balance?token={BLOCKCYPHER_API_KEY}"
         res = requests.get(url).json()
-        balance = int(res.get("chain_stats", {}).get("funded_txo_sum", 0)) / 1e8
-        tx_count = res.get("chain_stats", {}).get("tx_count", 0)
+        balance = int(res.get("balance", 0)) / 1e8
+        tx_count = res.get("n_tx", 0)
         return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
     except Exception as e:
-        print("❌ BTC API error:", str(e))
+        print("BTC API error:", str(e))
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# ----------- BSC ----------
+# BSC (placeholder)
 def fetch_bsc_data(address):
     return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# ----------- Solana ----------
+# Solana
 def fetch_solana_data(address):
-    return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
+    try:
+        url = f"https://api.helius.xyz/v0/addresses/{address}/balances?api-key={HELIUS_API_KEY}"
+        res = requests.get(url).json()
+        lamports = res.get("nativeBalance", {}).get("lamports", 0)
+        balance = lamports / 1e9
+        return {"balance": balance, "tx_count": 0, "wallet_age": 0, "last5tx": []}
+    except Exception as e:
+        print("Solana API error:", str(e))
+        return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
 
-# ----------- XRP ----------
+# XRP
 def fetch_xrp_data(address):
     try:
         url = f"https://api.xrpscan.com/api/v1/account/{address}"
         response = requests.get(url)
         data = response.json()
-
         balance = float(data.get("balance", 0)) / 1_000_000
         tx_count = data.get("transaction_count", 0)
-
-        return {
-            "balance": balance,
-            "tx_count": tx_count,
-            "wallet_age": 0,
-            "last5tx": []
-        }
+        return {"balance": balance, "tx_count": tx_count, "wallet_age": 0, "last5tx": []}
     except Exception as e:
-        print("❌ XRP XRPSCAN Error:", str(e))
+        print("XRP API error:", str(e))
         return {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
