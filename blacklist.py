@@ -1,12 +1,10 @@
-# blacklist.py
+# Contoh senarai hitam. Boleh sambung dari file / API nanti.
+BLACKLISTED_WALLETS = [
+    "0x000000000000000000000000000000000000dead",
+    "TQooBX9o8iSSprLWW96YShBogx7Uwisuim",
+    "bc1qscamwallet123456...",
+    "rScamXRPwallet1234..."
+]
 
 def is_blacklisted(address):
-    # Senarai alamat yang disenarai hitam
-    blacklist = [
-        "0xScamExample1234567890",
-        "TScammer987654321",
-        "1FAKESCAMBTC123456",
-        "TQWF3xEn44UrAS9a2bn7LKNssb1UbDeAx6",
-        "TQooBX9o8iSSprLWW96YShBogx7Uwisuim"
-    ]
-    return address.strip() in blacklist
+    return address in BLACKLISTED_WALLETS
