@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, send_file
 from api_handler import get_wallet_data
 from iso_export import generate_iso_xml
-from sheet_logger import log_user
 import io
 import os
 
