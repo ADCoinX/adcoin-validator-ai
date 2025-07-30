@@ -12,30 +12,28 @@
     <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
     <h1>ADC CRYPTOGUARD</h1>
 
-    <!-- ✅ Paparan Jumlah User - DIBUANG -->
-    <!-- <p style="color: #00ffcc; font-weight: bold; margin-top: -10px;">
-      ✅ {{ user_count }} users have tested this AI Wallet Validator!
-    </p> -->
-
-    <!-- ✅ Form validate wallet -->
     <form method="POST" action="/">
       <input type="text" name="wallet" placeholder="Enter wallet address..." required />
       <button type="submit">Validate Wallet</button>
     </form>
 
-    {% if result.address %}
+    {% if result and result.address %}
     <div class="result">
         <p><strong>Wallet:</strong> {{ result.address }}</p>
-        <p><strong>Network:</strong> {{ result.network }}</p>
-        <p><strong>Balance:</strong> {{ result.balance }}</p>
-        <p><strong>AI Risk Score:</strong> {{ result.ai_score }} / 100</p>
-        <p><strong>Risk Analysis:</strong> {{ result.reason }}</p>
-        <p><strong>Wallet Age:</strong> {{ result.wallet_age }} days</p>
-        <p><strong>Transaction Count:</strong> {{ result.tx_count }}</p>
-        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">⬇️ Export ISO 20022 (XML)</a></p>
+        <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
+        <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
+        <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
+        <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
+        <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
+        <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
+
+        {% if result.address and result.network != "Unknown" %}
+        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
+          ⬇️ Export ISO 20022 (XML)</a></p>
+        {% endif %}
     </div>
 
-    {% if result.last5tx %}
+    {% if result.last5tx and result.last5tx|length > 0 %}
       <div class="transactions" style="margin-top:25px;">
         <h4>Last 5 Transactions:</h4>
         <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
@@ -48,12 +46,10 @@
           </tr>
           {% for tx in result.last5tx %}
           <tr>
-            <td style="max-width:150px;overflow-x:auto;">
-              <a href="#" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-            </td>
+            <td><a href="#" style="color:#0af;">{{ tx.hash[:10] }}...</a></td>
             <td>{{ tx.time }}</td>
-            <td style="max-width:100px;overflow-x:auto;">{{ tx.from }}</td>
-            <td style="max-width:100px;overflow-x:auto;">{{ tx.to }}</td>
+            <td>{{ tx.from }}</td>
+            <td>{{ tx.to }}</td>
             <td>{{ tx.value }}</td>
           </tr>
           {% endfor %}
