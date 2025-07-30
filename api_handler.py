@@ -6,7 +6,6 @@ from blacklist import is_blacklisted
 from ai_risk import calculate_risk_score
 from iso_export import generate_iso_xml
 
-
 ETHERSCAN_API_KEY = os.getenv("ETHERSCAN_API_KEY")
 TRONGRID_API_KEY = os.getenv("TRONGRID_API_KEY")
 HELIUS_API_KEY = os.getenv("HELIUS_API_KEY")
@@ -29,30 +28,20 @@ def get_wallet_data(address):
     else:
         result = ("Unknown", {})
 
-    # -------------------------
-    # ✅ AI + ISO + Google Sheet
+    # --------------- NO GOOGLE SHEET ---------------
     data = result[1]
 
-    risk_score = calculate_risk_score(
-        data.get("balance", 0),
-        data.get("tx_count", 0),
-        data.get("wallet_age", 0)
-    )
+    risk_score, reason = calculate_risk_score(data)
+    # Kalau nak log local ke .txt boleh letak sini, tapi **Google Sheet totally OFF**
 
-    send_to_google_sheet(
-        address,
-        "Valid" if data else "Invalid",
-        risk_score,
-        result[0]
-    )
-
+    # ISO generator boleh keep (ni local function, bukan external)
     generate_iso_xml(
         address,
         "Valid" if data else "Invalid",
         risk_score,
         result[0]
     )
-    # -------------------------
+    # -----------------------------------------------
 
     return result
 
@@ -152,28 +141,10 @@ def fetch_xrp_data(address):
             "last5tx": []
         }
 
-def send_to_google_sheet(wallet, result, risk_score, network, ip=None, ai_comment="", blacklisted=""):
-    url = "https://script.google.com/macros/s/AKfycbzqcQZEzS_RrnC0pwx5ifNof6mhncnHO-TyqJuHd47fpG0u0-_C08fh1m9f4Yicxq79Gg/exec"
+# Buang terus Google Sheet logger!
+# def send_to_google_sheet(...) ... [DISABLED]
 
-    payload = {
-        "wallet": wallet,
-        "result": result,
-        "risk_score": risk_score,
-        "network": network,
-        "ip": ip or "Unknown",
-        "ai_comment": ai_comment,
-        "blacklisted": blacklisted
-    }
-
-    try:
-        response = requests.post(url, json=payload)
-        print("✅ Sheet Log:", response.text)
-    except Exception as e:
-        print("❌ Sheet Log Error:", str(e))
-
-# ----------- XRP ----------
-import requests
-
+# ----------- XRP validator legacy ----------
 def validate_xrp_wallet(address):
     try:
         # Check if valid XRP address
