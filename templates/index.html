@@ -46,7 +46,21 @@
           </tr>
           {% for tx in result.last5tx %}
           <tr>
-            <td><a href="#" style="color:#0af;">{{ tx.hash[:10] }}...</a></td>
+            <td>
+              {% if result.network == "Ethereum" %}
+              <a href="https://etherscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "TRON" %}
+              <a href="https://tronscan.io/#/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Bitcoin" %}
+              <a href="https://blockstream.info/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Solana" %}
+              <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "XRP" %}
+              <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% else %}
+              <span>{{ tx.hash[:10] }}...</span>
+              {% endif %}
+            </td>
             <td>{{ tx.time }}</td>
             <td>{{ tx.from }}</td>
             <td>{{ tx.to }}</td>
