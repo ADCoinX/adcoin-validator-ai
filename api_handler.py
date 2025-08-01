@@ -92,6 +92,25 @@ def get_wallet_data(address):
                 "value": "-"
             } for tx in txs[:5]] if isinstance(txs, list) else []
 
+        # === XRP === (place XRP check before Solana)
+        elif address.startswith("r"):
+            data["network"] = "XRP"
+            bal_url = f"https://data.ripple.com/v2/accounts/{address}"
+            tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?type=Payment&limit=5"
+            bal = requests.get(bal_url).json()
+            tx = requests.get(tx_url).json()
+
+            data["balance"] = float(bal.get("account_data", {}).get("Balance", 0)) / 1e6
+            if isinstance(tx, list):
+                data["tx_count"] = len(tx)
+                data["last5tx"] = [{
+                    "hash": t.get("hash", "-"),
+                    "time": t.get("date", "-"),
+                    "from": t.get("sender", "-"),
+                    "to": t.get("recipient", "-"),
+                    "value": str(t.get("amount", "0")) + " XRP"
+                } for t in tx]
+
         # === SOLANA ===
         elif len(address) >= 32:
             data["network"] = "Solana"
@@ -114,25 +133,6 @@ def get_wallet_data(address):
                             "to": n.get("toUserAccount", "-"),
                             "value": str(n.get("amount", 0) / 1e9) + " SOL"
                         })
-
-        # === XRP ===
-        elif address.startswith("r"):
-            data["network"] = "XRP"
-            bal_url = f"https://data.ripple.com/v2/accounts/{address}"
-            tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?type=Payment&limit=5"
-            bal = requests.get(bal_url).json()
-            tx = requests.get(tx_url).json()
-
-            data["balance"] = float(bal.get("account_data", {}).get("Balance", 0)) / 1e6
-            if isinstance(tx, list):
-                data["tx_count"] = len(tx)
-                data["last5tx"] = [{
-                    "hash": t.get("hash", "-"),
-                    "time": t.get("date", "-"),
-                    "from": t.get("sender", "-"),
-                    "to": t.get("recipient", "-"),
-                    "value": str(t.get("amount", "0")) + " XRP"
-                } for t in tx]
 
     except Exception as e:
         data["reason"] += f" | Error: {str(e)}"
