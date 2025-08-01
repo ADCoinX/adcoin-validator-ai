@@ -39,15 +39,15 @@ def get_wallet_data(address):
                 data["reason"] += " | ETH balance failed"
 
             txs = tx.get("result", [])
-            if tx.get("status") == "1" and txs:
+            if tx.get("status") == "1" and isinstance(txs, list) and txs:
                 data["tx_count"] = len(txs)
-                data["wallet_age"] = max(1, int((time.time() - int(txs[-1]['timeStamp'])) / 86400))
+                data["wallet_age"] = max(1, int((time.time() - int(txs[-1].get('timeStamp', time.time()))) / 86400))
                 data["last5tx"] = [{
-                    "hash": t["hash"],
-                    "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t["timeStamp"]))),
-                    "from": t["from"],
-                    "to": t["to"],
-                    "value": str(int(t["value"]) / 1e18) + " ETH"
+                    "hash": t.get("hash", "-"),
+                    "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("timeStamp", 0)))),
+                    "from": t.get("from", "-"),
+                    "to": t.get("to", "-"),
+                    "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
                 } for t in txs[:5]]
 
         # === TRON ===
@@ -62,29 +62,35 @@ def get_wallet_data(address):
             data["balance"] = float(bal.get('data', [{}])[0].get('balance', 0)) / 1e6
             txs = tx.get("data", [])
             data["tx_count"] = len(txs)
-            data["last5tx"] = [{
-                "hash": t.get("txID", "-"),
-                "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("block_timestamp", 0) / 1000))),
-                "from": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("owner_address", "-"),
-                "to": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("to_address", "-"),
-                "value": "-"
-            } for t in txs]
+            if txs:
+                data["last5tx"] = [{
+                    "hash": t.get("txID", "-"),
+                    "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("block_timestamp", 0) / 1000))),
+                    "from": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("owner_address", "-"),
+                    "to": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("to_address", "-"),
+                    "value": "-"
+                } for t in txs]
 
         # === BITCOIN ===
         elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
             data["network"] = "Bitcoin"
-            url = f"https://api.blockcypher.com/v1/btc/main/addrs/{address}?limit=5"
+            url = f"https://blockstream.info/api/address/{address}"
+            tx_url = f"https://blockstream.info/api/address/{address}/txs"
             r = requests.get(url).json()
-            data["balance"] = r.get("balance", 0) / 1e8
-            data["tx_count"] = r.get("n_tx", 0)
-            txs = r.get("txrefs", [])
+            txs = requests.get(tx_url).json()
+
+            funded = r.get("chain_stats", {}).get("funded_txo_sum", 0)
+            spent = r.get("chain_stats", {}).get("spent_txo_sum", 0)
+            data["balance"] = (funded - spent) / 1e8
+            data["tx_count"] = r.get("chain_stats", {}).get("tx_count", 0)
+
             data["last5tx"] = [{
-                "hash": tx.get("tx_hash", "-"),
-                "time": "-",
+                "hash": tx.get("txid", "-"),
+                "time": "-",  # optional: parse block_time if needed
                 "from": "-",
                 "to": "-",
-                "value": str(tx.get("value", 0) / 1e8) + " BTC"
-            } for tx in txs[:5]]
+                "value": "-"
+            } for tx in txs[:5]] if isinstance(txs, list) else []
 
         # === SOLANA ===
         elif len(address) >= 32:
@@ -103,7 +109,7 @@ def get_wallet_data(address):
                         n = t["nativeTransfers"][0]
                         data["last5tx"].append({
                             "hash": t.get("signature", "-"),
-                            "time": t.get("timestamp", "-"),
+                            "time": str(t.get("timestamp", "-")),
                             "from": n.get("fromUserAccount", "-"),
                             "to": n.get("toUserAccount", "-"),
                             "value": str(n.get("amount", 0) / 1e9) + " SOL"
