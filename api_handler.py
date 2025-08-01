@@ -86,13 +86,13 @@ def get_wallet_data(address):
 
             data["last5tx"] = [{
                 "hash": tx.get("txid", "-"),
-                "time": "-",  # optional: parse block_time if needed
+                "time": "-",  # optional
                 "from": "-",
                 "to": "-",
                 "value": "-"
             } for tx in txs[:5]] if isinstance(txs, list) else []
 
-        # === XRP === (place XRP check before Solana)
+        # === XRP === (Mesti sebelum Solana)
         elif address.startswith("r"):
             data["network"] = "XRP"
             bal_url = f"https://data.ripple.com/v2/accounts/{address}"
@@ -111,7 +111,7 @@ def get_wallet_data(address):
                     "value": str(t.get("amount", "0")) + " XRP"
                 } for t in tx]
 
-        # === SOLANA ===
+        # === SOLANA === (Letak akhir sekali)
         elif len(address) >= 32:
             data["network"] = "Solana"
             headers = {"Authorization": f"Bearer {HELIUS_API_KEY}"}
