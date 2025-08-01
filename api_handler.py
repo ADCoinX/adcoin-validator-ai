@@ -6,6 +6,12 @@ ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY")
 TRONGRID_API_KEY = os.environ.get("TRONGRID_API_KEY")
 HELIUS_API_KEY = os.environ.get("HELIUS_API_KEY")
 
+def safe_json(response):
+    try:
+        return response.json()
+    except:
+        return {}
+
 def get_wallet_data(address):
     data = {
         "address": address,
@@ -25,50 +31,59 @@ def get_wallet_data(address):
         return data
 
     try:
+        # === ETHEREUM ===
         if address.startswith("0x") and len(address) == 42:
             data["network"] = "Ethereum"
-            bal = requests.get(f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}").json()
-            tx = requests.get(f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}").json()
+            bal_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
+            tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
+            bal = safe_json(requests.get(bal_url))
+            tx = safe_json(requests.get(tx_url))
 
             if bal.get("status") == "1":
                 data["balance"] = float(bal.get("result", 0)) / 1e18
             else:
                 data["reason"] += " | ETH balance failed"
 
-            if tx.get("status") == "1":
-                txs = tx.get("result", [])
+            txs = tx.get("result", [])
+            if tx.get("status") == "1" and isinstance(txs, list) and txs:
                 data["tx_count"] = len(txs)
-                if txs:
-                    data["wallet_age"] = max(1, int((time.time() - int(txs[-1].get('timeStamp', time.time()))) / 86400))
-                    data["last5tx"] = [{
-                        "hash": t.get("hash", "-"),
-                        "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("timeStamp", 0)))),
-                        "from": t.get("from", "-"),
-                        "to": t.get("to", "-"),
-                        "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
-                    } for t in txs[:5]]
+                data["wallet_age"] = max(1, int((time.time() - int(txs[-1].get('timeStamp', time.time()))) / 86400))
+                data["last5tx"] = [{
+                    "hash": t.get("hash", "-"),
+                    "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("timeStamp", 0)))),
+                    "from": t.get("from", "-"),
+                    "to": t.get("to", "-"),
+                    "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
+                } for t in txs[:5]]
 
+        # === TRON ===
         elif address.startswith("T"):
             data["network"] = "TRON"
             headers = {"TRON-PRO-API-KEY": TRONGRID_API_KEY}
-            bal = requests.get(f"https://api.trongrid.io/v1/accounts/{address}", headers=headers).json()
-            tx = requests.get(f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc", headers=headers).json()
+            bal_url = f"https://api.trongrid.io/v1/accounts/{address}"
+            tx_url = f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc"
+            bal = safe_json(requests.get(bal_url, headers=headers))
+            tx = safe_json(requests.get(tx_url, headers=headers))
 
-            data["balance"] = float(bal.get("data", [{}])[0].get("balance", 0)) / 1e6
+            data["balance"] = float(bal.get('data', [{}])[0].get('balance', 0)) / 1e6
             txs = tx.get("data", [])
             data["tx_count"] = len(txs)
-            data["last5tx"] = [{
-                "hash": t.get("txID", "-"),
-                "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(t.get("block_timestamp", 0) // 1000)),
-                "from": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("owner_address", "-"),
-                "to": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("to_address", "-"),
-                "value": "-"
-            } for t in txs]
+            if txs:
+                data["last5tx"] = [{
+                    "hash": t.get("txID", "-"),
+                    "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("block_timestamp", 0) / 1000))),
+                    "from": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("owner_address", "-"),
+                    "to": t.get("raw_data", {}).get("contract", [{}])[0].get("parameter", {}).get("value", {}).get("to_address", "-"),
+                    "value": "-"
+                } for t in txs]
 
+        # === BITCOIN ===
         elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
             data["network"] = "Bitcoin"
-            r = requests.get(f"https://blockstream.info/api/address/{address}").json()
-            txs = requests.get(f"https://blockstream.info/api/address/{address}/txs").json()
+            url = f"https://blockstream.info/api/address/{address}"
+            tx_url = f"https://blockstream.info/api/address/{address}/txs"
+            r = safe_json(requests.get(url))
+            txs = safe_json(requests.get(tx_url))
 
             funded = r.get("chain_stats", {}).get("funded_txo_sum", 0)
             spent = r.get("chain_stats", {}).get("spent_txo_sum", 0)
@@ -83,10 +98,13 @@ def get_wallet_data(address):
                 "value": "-"
             } for tx in txs[:5]] if isinstance(txs, list) else []
 
+        # === XRP ===
         elif address.startswith("r"):
             data["network"] = "XRP"
-            bal = requests.get(f"https://data.ripple.com/v2/accounts/{address}").json()
-            tx = requests.get(f"https://api.xrpscan.com/api/v1/account/{address}/transactions?type=Payment&limit=5").json()
+            bal_url = f"https://data.ripple.com/v2/accounts/{address}"
+            tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?type=Payment&limit=5"
+            bal = safe_json(requests.get(bal_url))
+            tx = safe_json(requests.get(tx_url))
 
             data["balance"] = float(bal.get("account_data", {}).get("Balance", 0)) / 1e6
             if isinstance(tx, list):
@@ -99,13 +117,16 @@ def get_wallet_data(address):
                     "value": str(t.get("amount", "0")) + " XRP"
                 } for t in tx]
 
+        # === SOLANA ===
         elif len(address) >= 32:
             data["network"] = "Solana"
             headers = {"Authorization": f"Bearer {HELIUS_API_KEY}"}
-            bal = requests.get(f"https://api.helius.xyz/v0/addresses/{address}/balances?api-key={HELIUS_API_KEY}", headers=headers).json()
-            tx = requests.get(f"https://api.helius.xyz/v0/addresses/{address}/transactions?limit=5&api-key={HELIUS_API_KEY}", headers=headers).json()
+            bal_url = f"https://api.helius.xyz/v0/addresses/{address}/balances?api-key={HELIUS_API_KEY}"
+            tx_url = f"https://api.helius.xyz/v0/addresses/{address}/transactions?limit=5&api-key={HELIUS_API_KEY}"
+            bal = safe_json(requests.get(bal_url, headers=headers))
+            tx = safe_json(requests.get(tx_url, headers=headers))
 
-            data["balance"] = float(bal.get("nativeBalance", {}).get("lamports", 0)) / 1e9
+            data["balance"] = float(bal.get('nativeBalance', {}).get('lamports', 0)) / 1e9
             if isinstance(tx, list):
                 data["tx_count"] = len(tx)
                 for t in tx:
@@ -122,6 +143,7 @@ def get_wallet_data(address):
     except Exception as e:
         data["reason"] += f" | Error: {str(e)}"
 
+    # === AI ===
     data["ai_score"], ai_reason = calculate_risk_score(data)
     if ai_reason:
         data["reason"] += " | " + ai_reason
