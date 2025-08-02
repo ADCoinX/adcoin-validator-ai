@@ -1,14 +1,7 @@
 import requests
-from get_eth_data import fetch_eth_data
-from get_tron_data import fetch_tron_data
-from get_btc_data import fetch_btc_data
-from get_xrp_data import fetch_xrp_data
-from get_solana_data import fetch_sol_data
-from get_hedera_data import fetch_hbar_data
-from get_base_data import fetch_base_data  # Jika ada fail ini
+from datetime import datetime
 from ai_risk import calculate_risk_score
 from iso_export import generate_iso_xml
-from datetime import datetime
 
 def get_wallet_data(address):
     try:
@@ -20,7 +13,7 @@ def get_wallet_data(address):
             return fetch_btc_data(address)
         elif address.startswith("r") and len(address) >= 25:
             return fetch_xrp_data(address)
-        elif len(address) == 44:  # Solana typical address length
+        elif len(address) == 44:
             return fetch_sol_data(address)
         elif "-" in address and len(address) >= 42:
             return fetch_hbar_data(address)
@@ -37,6 +30,232 @@ def default_result(address, network, reason):
         "network": network,
         "balance": 0,
         "ai_score": 0,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_eth_data(address):
+    try:
+        url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
+        response = requests.get(url).json()
+        balance = int(response["result"]) / 1e18
+    except:
+        try:
+            url = f"https://api.blockchair.com/ethereum/dashboards/address/{address}"
+            response = requests.get(url).json()
+            balance = int(response["data"][address]["address"]["balance"]) / 1e18
+        except:
+            return default_result(address, "Ethereum", "❌ API rejected")
+
+    try:
+        txs_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
+        tx_response = requests.get(txs_url).json()
+        txs = tx_response.get("result", [])[:5]
+        tx_list = [{
+            "hash": tx["hash"],
+            "time": datetime.utcfromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M'),
+            "from": tx["from"],
+            "to": tx["to"],
+            "value": str(int(tx["value"]) / 1e18)
+        } for tx in txs]
+    except:
+        txs = []
+        tx_list = []
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": len(txs),
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "Ethereum",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": len(txs),
+        "last5tx": tx_list
+    }
+
+def fetch_tron_data(address):
+    try:
+        url = f"https://api.trongrid.io/v1/accounts/{address}"
+        response = requests.get(url).json()
+        balance = int(response["data"][0].get("balance", 0)) / 1e6
+    except:
+        try:
+            url = f"https://apilist.tronscanapi.com/api/account?address={address}"
+            response = requests.get(url).json()
+            balance = int(response.get("balance", 0)) / 1e6
+        except:
+            return default_result(address, "TRON", "❌ API rejected")
+
+    tx_list = []  # Optional if you want to add last 5 TX
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "TRON",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": tx_list
+    }
+
+def fetch_btc_data(address):
+    try:
+        url = f"https://api.blockcypher.com/v1/btc/main/addrs/{address}/balance"
+        response = requests.get(url).json()
+        balance = int(response["final_balance"]) / 1e8
+    except:
+        try:
+            url = f"https://blockstream.info/api/address/{address}"
+            response = requests.get(url).json()
+            balance = response.get("chain_stats", {}).get("funded_txo_sum", 0) / 1e8
+        except:
+            return default_result(address, "Bitcoin", "❌ API rejected")
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "Bitcoin",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_xrp_data(address):
+    try:
+        url = f"https://api.xrpscan.com/api/v1/account/{address}/balances"
+        response = requests.get(url).json()
+        balance = float(response[0]["value"])
+    except:
+        try:
+            url = f"https://data.ripple.com/v2/accounts/{address}/balances"
+            response = requests.get(url).json()
+            balance = float(response["balances"][0]["value"])
+        except:
+            return default_result(address, "XRP", "❌ API rejected")
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "XRP",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_sol_data(address):
+    try:
+        url = f"https://api.helius.xyz/v0/addresses/{address}/balances?api-key=90048cfc-009e-4e79-a4ae-3070d2fc5a5c"
+        response = requests.get(url).json()
+        balance = float(response["nativeBalance"]["sol"])
+    except:
+        try:
+            url = f"https://public-api.solscan.io/account/{address}"
+            response = requests.get(url).json()
+            balance = float(response.get("lamports", 0)) / 1e9
+        except:
+            return default_result(address, "Solana", "❌ API rejected")
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "Solana",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_hbar_data(address):
+    try:
+        url = f"https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/{address}"
+        response = requests.get(url).json()
+        balance = int(response["balance"]["balance"]) / 1e8
+    except:
+        try:
+            url = f"https://hashscan.io/api/mainnet/account/{address}"
+            response = requests.get(url).json()
+            balance = int(response["balance"]) / 1e8
+        except:
+            return default_result(address, "HBAR", "❌ API rejected")
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "HBAR",
+        "balance": balance,
+        "ai_score": score,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_base_data(address):
+    try:
+        url = f"https://api.basescan.org/api?module=account&action=balance&address={address}&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
+        response = requests.get(url).json()
+        balance = int(response["result"]) / 1e18
+    except:
+        try:
+            url = f"https://api.blockscout.com/base/mainnet/api?module=account&action=balance&address={address}"
+            response = requests.get(url).json()
+            balance = int(response["result"]) / 1e18
+        except:
+            return default_result(address, "BASE", "❌ API rejected")
+
+    score, reason = calculate_risk_score({
+        "balance": balance,
+        "tx_count": 0,
+        "wallet_age": 0
+    })
+
+    return {
+        "address": address,
+        "network": "BASE",
+        "balance": balance,
+        "ai_score": score,
         "reason": reason,
         "wallet_age": 0,
         "tx_count": 0,
