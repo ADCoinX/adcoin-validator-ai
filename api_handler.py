@@ -13,11 +13,38 @@ def safe_json(response):
     except Exception:
         return {}
 
+# ETHERSCAN V2 (ETH)
 def fetch_eth(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
-        bal_url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&apikey={ETHERSCAN_API_KEY}"
-        tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey={ETHERSCAN_API_KEY}"
+        bal_url = f"https://api.etherscan.io/v2/account/balance?address={address}&apiKey={ETHERSCAN_API_KEY}"
+        bal = safe_json(requests.get(bal_url, timeout=8))
+        result["balance"] = float(bal.get("result", {}).get("balance", 0)) / 1e18
+
+        tx_url = f"https://api.etherscan.io/v2/account/transactions?address={address}&apiKey={ETHERSCAN_API_KEY}"
+        tx = safe_json(requests.get(tx_url, timeout=8))
+        txs = tx.get("result", [])
+        result["tx_count"] = len(txs)
+        if txs:
+            result["wallet_age"] = max(1, int((time.time() - int(txs[-1].get('timestamp', time.time()))) / 86400))
+            result["last5tx"] = [{
+                "hash": t.get("hash", "-"),
+                "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("timestamp", 0)))),
+                "from": t.get("from", "-"),
+                "to": t.get("to", "-"),
+                "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
+            } for t in txs[:5]]
+    except Exception as e:
+        print(f"ETH V2 error: {e}")
+    return result
+
+# BASE (Blockscout/Etherscan style, fallback ke V1 kalau V2 tak support)
+def fetch_base(address):
+    result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
+    try:
+        # Cuba V2 endpoint (jika support, adjust jika BASEScan sudah update!)
+        bal_url = f"https://api.basescan.org/api?module=account&action=balance&address={address}&apikey={BASESCAN_API_KEY}"
+        tx_url = f"https://api.basescan.org/api?module=account&action=txlist&address={address}&sort=desc&apikey={BASESCAN_API_KEY}"
         bal = safe_json(requests.get(bal_url, timeout=6))
         tx = safe_json(requests.get(tx_url, timeout=8))
 
@@ -36,9 +63,10 @@ def fetch_eth(address):
                 "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
             } for t in txs[:5]]
     except Exception as e:
-        print(f"ETH error: {e}")
+        print(f"BASE error: {e}")
     return result
 
+# Chain lain kekal
 def fetch_tron(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
@@ -134,32 +162,6 @@ def fetch_solana(address):
         print(f"SOL error: {e}")
     return result
 
-def fetch_base(address):
-    result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
-    try:
-        bal_url = f"https://api.basescan.org/api?module=account&action=balance&address={address}&apikey={BASESCAN_API_KEY}"
-        tx_url = f"https://api.basescan.org/api?module=account&action=txlist&address={address}&sort=desc&apikey={BASESCAN_API_KEY}"
-        bal = safe_json(requests.get(bal_url, timeout=6))
-        tx = safe_json(requests.get(tx_url, timeout=8))
-
-        if bal.get("status") == "1" and bal.get("result"):
-            result["balance"] = float(bal["result"]) / 1e18
-
-        txs = tx.get("result", [])
-        if tx.get("status") == "1" and isinstance(txs, list) and txs:
-            result["tx_count"] = len(txs)
-            result["wallet_age"] = max(1, int((time.time() - int(txs[-1].get('timeStamp', time.time()))) / 86400))
-            result["last5tx"] = [{
-                "hash": t.get("hash", "-"),
-                "time": time.strftime('%Y-%m-%d %H:%M', time.gmtime(int(t.get("timeStamp", 0)))),
-                "from": t.get("from", "-"),
-                "to": t.get("to", "-"),
-                "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
-            } for t in txs[:5]]
-    except Exception as e:
-        print(f"BASE error: {e}")
-    return result
-
 def fetch_hedera(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
@@ -173,7 +175,6 @@ def fetch_hedera(address):
         print(f"Hedera error: {e}")
     return result
 
-# Optional: live blacklist, chainabuse, etc.
 def is_online_blacklisted(address):
     try:
         url = f"https://api.chainabuse.com/api/v1/reports/address/{address}"
@@ -197,7 +198,6 @@ def get_wallet_data(address):
         "blacklisted": False
     }
 
-    # Blacklist
     try:
         if is_blacklisted(address) or is_online_blacklisted(address):
             data["reason"] = "🚫 Blacklisted Wallet"
@@ -208,8 +208,6 @@ def get_wallet_data(address):
 
     try:
         if address.startswith("0x") and len(address) == 42:
-            # Ethereum vs BASE auto detection - you can use prefix or chain selector
-            # Here default: Ethereum first, fallback BASE if ETH API fail
             eth_data = fetch_eth(address)
             if eth_data["balance"] > 0 or eth_data["tx_count"] > 0:
                 data.update(eth_data)
@@ -238,7 +236,6 @@ def get_wallet_data(address):
     except Exception as e:
         data["reason"] += f" | Error: {str(e)}"
 
-    # AI risk
     try:
         data["ai_score"], ai_reason = calculate_risk_score(data)
         if ai_reason:
@@ -246,7 +243,6 @@ def get_wallet_data(address):
     except Exception as e:
         data["reason"] += f" | AI Error: {str(e)}"
 
-    # Guarantee always ada data, no crash!
     if "last5tx" not in data or not isinstance(data["last5tx"], list):
         data["last5tx"] = []
     if "balance" not in data or not isinstance(data["balance"], (int, float)):
