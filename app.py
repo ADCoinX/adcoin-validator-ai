@@ -6,34 +6,25 @@ import os
 
 app = Flask(__name__)
 
-DEFAULT_RESULT = {
-    "address": "",
-    "network": "Unknown",
-    "balance": 0,
-    "ai_score": 0,
-    "reason": "",
-    "wallet_age": 0,
-    "tx_count": 0,
-    "last5tx": [],
-}
-
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    result = DEFAULT_RESULT.copy()
+    result = {}
     if request.method == 'POST':
         address = request.form.get('wallet', '').strip()
         if address:
             try:
                 result = get_wallet_data(address)
-                # Guarantee semua field wujud, elak crash UI
-                for k, v in DEFAULT_RESULT.items():
-                    if k not in result:
-                        result[k] = v
             except Exception as e:
-                print(f"[ERROR] get_wallet_data: {str(e)}")
-                result = DEFAULT_RESULT.copy()
-                result["address"] = address
-                result["reason"] = f"System error: {str(e)}"
+                result = {
+                    "address": address,
+                    "network": "Unknown",
+                    "balance": 0,
+                    "ai_score": 0,
+                    "reason": f"System error: {str(e)}",
+                    "wallet_age": 0,
+                    "tx_count": 0,
+                    "last5tx": []
+                }
     return render_template('index.html', result=result)
 
 @app.route('/export-iso')
@@ -50,7 +41,6 @@ def export_iso():
             download_name=f'{wallet}_iso20022.xml'
         )
     except Exception as e:
-        print(f"[ERROR] export-iso: {str(e)}")
         return f"Failed to export XML: {str(e)}", 500
 
 if __name__ == '__main__':
