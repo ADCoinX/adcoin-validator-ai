@@ -10,20 +10,39 @@ app = Flask(__name__)
 def home():
     result = {}
     if request.method == 'POST':
-        address = request.form['wallet'].strip()
-        result = get_wallet_data(address)
+        address = request.form.get('wallet', '').strip()
+        if address:
+            try:
+                result = get_wallet_data(address)
+            except Exception as e:
+                result = {
+                    "address": address,
+                    "network": "Unknown",
+                    "balance": 0,
+                    "ai_score": 0,
+                    "reason": f"System error: {str(e)}",
+                    "wallet_age": 0,
+                    "tx_count": 0,
+                    "last5tx": [],
+                    "blacklisted": False
+                }
     return render_template('index.html', result=result)
 
 @app.route('/export-iso')
 def export_iso():
-    wallet = request.args.get("wallet")
-    xml_data = generate_iso_xml(wallet)
-    return send_file(
-        io.BytesIO(xml_data.encode()),
-        mimetype='application/xml',
-        as_attachment=True,
-        download_name=f'{wallet}_iso20022.xml'
-    )
+    wallet = request.args.get("wallet", "")
+    if not wallet:
+        return "Invalid wallet", 400
+    try:
+        xml_data = generate_iso_xml(wallet)
+        return send_file(
+            io.BytesIO(xml_data.encode()),
+            mimetype='application/xml',
+            as_attachment=True,
+            download_name=f'{wallet}_iso20022.xml'
+        )
+    except Exception as e:
+        return f"Failed to export XML: {str(e)}", 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 1000))
