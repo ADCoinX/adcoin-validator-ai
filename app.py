@@ -18,8 +18,12 @@ def home():
 def export_iso():
     wallet = request.args.get("wallet")
     xml_data = generate_iso_xml(wallet)
-    return send_file(io.BytesIO(xml_data.encode()), mimetype='application/xml',
-                     as_attachment=True, download_name=f'{wallet}_iso20022.xml')
+    return send_file(
+        io.BytesIO(xml_data.encode()),
+        mimetype='application/xml',
+        as_attachment=True,
+        download_name=f'{wallet}_iso20022.xml'
+    )
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 1000))
