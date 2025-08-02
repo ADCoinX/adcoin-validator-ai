@@ -57,6 +57,10 @@
               <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
               {% elif result.network == "XRP" %}
               <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "BASE" %}
+              <a href="https://basescan.org/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Hedera" %}
+              <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
               {% else %}
               <span>{{ tx.hash[:10] }}...</span>
               {% endif %}
@@ -78,7 +82,7 @@
     </p>
 
     <p class="networks">
-      Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL</strong>
+      Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL, BASE, Hedera</strong>
     </p>
   </div>
 
