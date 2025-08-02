@@ -1,6 +1,5 @@
 import requests, os, time
 from ai_risk import calculate_risk_score
-from blacklist import is_blacklisted
 
 ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY")
 TRONGRID_API_KEY = os.environ.get("TRONGRID_API_KEY")
@@ -9,11 +8,14 @@ BASESCAN_API_KEY = os.environ.get("BASESCAN_API_KEY")
 
 def safe_json(response):
     try:
+        print("URL:", response.url)
+        print("Status:", response.status_code)
+        print("Resp:", response.text[:200])
         return response.json()
-    except Exception:
+    except Exception as e:
+        print("JSON Error:", str(e))
         return {}
 
-# ETHERSCAN V2 (ETH)
 def fetch_eth(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
@@ -35,22 +37,18 @@ def fetch_eth(address):
                 "value": str(int(t.get("value", 0)) / 1e18) + " ETH"
             } for t in txs[:5]]
     except Exception as e:
-        print(f"ETH V2 error: {e}")
+        print(f"ETH error: {e}")
     return result
 
-# BASE (Blockscout/Etherscan style, fallback ke V1 kalau V2 tak support)
 def fetch_base(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
-        # Cuba V2 endpoint (jika support, adjust jika BASEScan sudah update!)
         bal_url = f"https://api.basescan.org/api?module=account&action=balance&address={address}&apikey={BASESCAN_API_KEY}"
         tx_url = f"https://api.basescan.org/api?module=account&action=txlist&address={address}&sort=desc&apikey={BASESCAN_API_KEY}"
         bal = safe_json(requests.get(bal_url, timeout=6))
         tx = safe_json(requests.get(tx_url, timeout=8))
-
         if bal.get("status") == "1" and bal.get("result"):
             result["balance"] = float(bal["result"]) / 1e18
-
         txs = tx.get("result", [])
         if tx.get("status") == "1" and isinstance(txs, list) and txs:
             result["tx_count"] = len(txs)
@@ -66,7 +64,6 @@ def fetch_base(address):
         print(f"BASE error: {e}")
     return result
 
-# Chain lain kekal
 def fetch_tron(address):
     result = {"balance": 0, "tx_count": 0, "wallet_age": 0, "last5tx": []}
     try:
@@ -75,7 +72,6 @@ def fetch_tron(address):
         tx_url = f"https://api.trongrid.io/v1/accounts/{address}/transactions?limit=5&order_by=block_timestamp,desc"
         bal = safe_json(requests.get(bal_url, headers=headers, timeout=6))
         tx = safe_json(requests.get(tx_url, headers=headers, timeout=8))
-
         result["balance"] = float(bal.get('data', [{}])[0].get('balance', 0)) / 1e6
         txs = tx.get("data", [])
         result["tx_count"] = len(txs)
@@ -98,7 +94,6 @@ def fetch_btc(address):
         tx_url = f"https://blockstream.info/api/address/{address}/txs"
         r = safe_json(requests.get(url, timeout=6))
         txs = safe_json(requests.get(tx_url, timeout=8))
-
         funded = r.get("chain_stats", {}).get("funded_txo_sum", 0)
         spent = r.get("chain_stats", {}).get("spent_txo_sum", 0)
         result["balance"] = (funded - spent) / 1e8
@@ -121,7 +116,6 @@ def fetch_xrp(address):
         tx_url = f"https://api.xrpscan.com/api/v1/account/{address}/transactions?type=Payment&limit=5"
         bal = safe_json(requests.get(bal_url, timeout=6))
         tx = safe_json(requests.get(tx_url, timeout=8))
-
         result["balance"] = float(bal.get("account_data", {}).get("Balance", 0)) / 1e6
         if isinstance(tx, list):
             result["tx_count"] = len(tx)
@@ -144,7 +138,6 @@ def fetch_solana(address):
         tx_url = f"https://api.helius.xyz/v0/addresses/{address}/transactions?limit=5&api-key={HELIUS_API_KEY}"
         bal = safe_json(requests.get(bal_url, headers=headers, timeout=6))
         tx = safe_json(requests.get(tx_url, headers=headers, timeout=8))
-
         result["balance"] = float(bal.get('nativeBalance', {}).get('lamports', 0)) / 1e9
         if isinstance(tx, list) and len(tx) > 0:
             for t in tx[:5]:
@@ -170,20 +163,9 @@ def fetch_hedera(address):
         account_data = r.get("account", {})
         balance = account_data.get("balance", {}).get("balance", 0)
         result["balance"] = float(balance) / 1e8
-        # tx fetch boleh enhance: /transactions?account.id=0.0.xxxx
     except Exception as e:
         print(f"Hedera error: {e}")
     return result
-
-def is_online_blacklisted(address):
-    try:
-        url = f"https://api.chainabuse.com/api/v1/reports/address/{address}"
-        resp = requests.get(url, timeout=5)
-        if resp.status_code == 200 and isinstance(resp.json(), list) and len(resp.json()) > 0:
-            return True
-        return False
-    except Exception:
-        return False
 
 def get_wallet_data(address):
     data = {
@@ -194,45 +176,63 @@ def get_wallet_data(address):
         "reason": "",
         "wallet_age": 0,
         "tx_count": 0,
-        "last5tx": [],
-        "blacklisted": False
+        "last5tx": []
     }
 
     try:
-        if is_blacklisted(address) or is_online_blacklisted(address):
-            data["reason"] = "🚫 Blacklisted Wallet"
-            data["blacklisted"] = True
-            return data
-    except Exception as e:
-        print(f"Blacklist error: {e}")
-
-    try:
         if address.startswith("0x") and len(address) == 42:
+            print("=== ETH & BASE ===")
             eth_data = fetch_eth(address)
-            if eth_data["balance"] > 0 or eth_data["tx_count"] > 0:
+            print("ETH:", eth_data)
+            base_data = fetch_base(address)
+            print("BASE:", base_data)
+            eth_valid = (eth_data["balance"] is not None and eth_data["tx_count"] is not None and (eth_data["balance"] > 0 or eth_data["tx_count"] > 0))
+            base_valid = (base_data["balance"] is not None and base_data["tx_count"] is not None and (base_data["balance"] > 0 or base_data["tx_count"] > 0))
+            if eth_valid and not base_valid:
                 data.update(eth_data)
                 data["network"] = "Ethereum"
-            else:
-                base_data = fetch_base(address)
+            elif base_valid and not eth_valid:
                 data.update(base_data)
                 data["network"] = "BASE"
+            elif eth_valid and base_valid:
+                data.update(eth_data)
+                data["network"] = "Ethereum"
+                data["reason"] = "Wallet aktif di ETH & BASE (default: ETH)"
+            else:
+                data.update(eth_data)
+                data["reason"] = "ETH & BASE kosong/tiada data atau API error"
         elif address.startswith("T"):
+            print("=== TRON ===")
+            tron_data = fetch_tron(address)
+            print("TRON:", tron_data)
             data["network"] = "TRON"
-            data.update(fetch_tron(address))
+            data.update(tron_data)
         elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
+            print("=== BTC ===")
+            btc_data = fetch_btc(address)
+            print("BTC:", btc_data)
             data["network"] = "Bitcoin"
-            data.update(fetch_btc(address))
+            data.update(btc_data)
         elif address.startswith("r"):
+            print("=== XRP ===")
+            xrp_data = fetch_xrp(address)
+            print("XRP:", xrp_data)
             data["network"] = "XRP"
-            data.update(fetch_xrp(address))
+            data.update(xrp_data)
         elif len(address) >= 32:
+            print("=== SOLANA ===")
+            sol_data = fetch_solana(address)
+            print("SOL:", sol_data)
             data["network"] = "Solana"
-            data.update(fetch_solana(address))
+            data.update(sol_data)
         elif address.startswith("0.0."):
+            print("=== HEDERA ===")
+            hedera_data = fetch_hedera(address)
+            print("HEDERA:", hedera_data)
             data["network"] = "Hedera"
-            data.update(fetch_hedera(address))
+            data.update(hedera_data)
         else:
-            data["reason"] = " | Unsupported address type"
+            data["reason"] = "| Unsupported address type"
     except Exception as e:
         data["reason"] += f" | Error: {str(e)}"
 
@@ -250,4 +250,5 @@ def get_wallet_data(address):
     if "tx_count" not in data or not isinstance(data["tx_count"], int):
         data["tx_count"] = 0
 
+    print("FINAL RETURN:", data)
     return data
