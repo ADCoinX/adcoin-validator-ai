@@ -414,4 +414,4 @@ def fetch_hbar_data(address):
         }
     except Exception as e:
         print(f"[Hashscan FAIL] {e}")
-        return default_result(address, "HBAR
+        return default_result(address, "HBAR", "❌ API rejected")
