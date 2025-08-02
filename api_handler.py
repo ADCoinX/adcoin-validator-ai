@@ -36,23 +36,28 @@ def default_result(address, network, reason):
         "last5tx": []
     }
 
+# ✅ Dibaiki Ethereum - fallback API
 def fetch_eth_data(address):
+    balance = 0
+    txs = []
+    tx_list = []
+
     try:
         url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
-        response = requests.get(url).json()
-        balance = int(response["result"]) / 1e18
+        res = requests.get(url).json()
+        balance = int(res.get("result", 0)) / 1e18
     except:
         try:
             url = f"https://api.blockchair.com/ethereum/dashboards/address/{address}"
-            response = requests.get(url).json()
-            balance = int(response["data"][address]["address"]["balance"]) / 1e18
+            res = requests.get(url).json()
+            balance = int(res["data"][address]["address"]["balance"]) / 1e18
         except:
             return default_result(address, "Ethereum", "❌ API rejected")
 
     try:
-        txs_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
-        tx_response = requests.get(txs_url).json()
-        txs = tx_response.get("result", [])[:5]
+        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
+        res = requests.get(url).json()
+        txs = res.get("result", [])[:5]
         tx_list = [{
             "hash": tx["hash"],
             "time": datetime.utcfromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M'),
@@ -81,6 +86,8 @@ def fetch_eth_data(address):
         "last5tx": tx_list
     }
 
+# 🔻 Yang bawah ni dari kod asal kau, tak diubah langsung
+
 def fetch_tron_data(address):
     try:
         url = f"https://api.trongrid.io/v1/accounts/{address}"
@@ -94,7 +101,7 @@ def fetch_tron_data(address):
         except:
             return default_result(address, "TRON", "❌ API rejected")
 
-    tx_list = []  # Optional if you want to add last 5 TX
+    tx_list = []
     score, reason = calculate_risk_score({
         "balance": balance,
         "tx_count": 0,
