@@ -15,8 +15,8 @@ def get_wallet_data(address):
             return fetch_xrp_data(address)
         elif len(address) == 44:
             return fetch_sol_data(address)
-        elif "-" in address and len(address) >= 42:
-            return fetch_hbar_data(address)
+        elif address.startswith("0.0.") and address.count(".") == 2:
+    return fetch_hbar_data(address)
         elif address.lower().startswith("0x") and "base" in address.lower():
             return fetch_base_data(address)
         else:
@@ -238,7 +238,7 @@ def fetch_hbar_data(address):
     try:
         url = f"https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/{address}"
         response = requests.get(url).json()
-        balance = int(response["balance"]["balance"]) / 1e8
+        balance = int(response["balance"]) / 1e8
     except:
         try:
             url = f"https://hashscan.io/api/mainnet/account/{address}"
