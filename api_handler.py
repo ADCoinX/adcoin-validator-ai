@@ -16,7 +16,7 @@ def get_wallet_data(address):
         elif len(address) == 44:
             return fetch_sol_data(address)
         elif address.startswith("0.0.") and address.count(".") == 2:
-    return fetch_hbar_data(address)
+            return fetch_hbar_data(address)
         elif address.lower().startswith("0x") and "base" in address.lower():
             return fetch_base_data(address)
         else:
