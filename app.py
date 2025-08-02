@@ -17,6 +17,8 @@ def home():
 @app.route('/export-iso')
 def export_iso():
     wallet = request.args.get("wallet")
+    if not wallet:
+        return "Wallet address missing", 400
     xml_data = generate_iso_xml(wallet)
     return send_file(
         io.BytesIO(xml_data.encode()),
