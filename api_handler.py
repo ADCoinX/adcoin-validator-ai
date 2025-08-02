@@ -36,55 +36,80 @@ def default_result(address, network, reason):
         "last5tx": []
     }
 
-# ✅ Dibaiki Ethereum - fallback API
 def fetch_eth_data(address):
-    balance = 0
-    txs = []
-    tx_list = []
-
     try:
-        url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
-        res = requests.get(url).json()
-        balance = int(res.get("result", 0)) / 1e18
-    except:
-        try:
-            url = f"https://api.blockchair.com/ethereum/dashboards/address/{address}"
-            res = requests.get(url).json()
-            balance = int(res["data"][address]["address"]["balance"]) / 1e18
-        except:
-            return default_result(address, "Ethereum", "❌ API rejected")
+        # Primary API: Etherscan
+        url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey={ETHERSCAN_API_KEY}"
+        tx_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&startblock=0&endblock=99999999&sort=desc&apikey={ETHERSCAN_API_KEY}"
+        
+        balance_response = requests.get(url, timeout=10).json()
+        tx_response = requests.get(tx_url, timeout=10).json()
 
+        if balance_response.get("status") == "1" and tx_response.get("status") == "1":
+            balance = int(balance_response["result"]) / 1e18
+            txs = tx_response.get("result", [])[:5]
+            tx_list = [{
+                "hash": tx["hash"],
+                "time": datetime.utcfromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M'),
+                "from": tx["from"],
+                "to": tx["to"],
+                "value": str(int(tx["value"]) / 1e18)
+            } for tx in txs]
+            score, reason = calculate_risk_score({
+                "balance": balance,
+                "tx_count": len(txs),
+                "wallet_age": 0
+            })
+
+            return {
+                "address": address,
+                "network": "Ethereum",
+                "balance": balance,
+                "ai_score": score,
+                "reason": reason,
+                "wallet_age": 0,
+                "tx_count": len(txs),
+                "last5tx": tx_list
+            }
+
+    except Exception as e:
+        print(f"[Etherscan Failed] {e}")
+
+    # Fallback API: Ethplorer
     try:
-        url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey=AW748ZEW1BC72P2WY8REWHP1OHJV3HKR35C"
-        res = requests.get(url).json()
-        txs = res.get("result", [])[:5]
+        url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
+        response = requests.get(url, timeout=10).json()
+
+        balance = response.get("ETH", {}).get("balance", 0)
+        tx_count = response.get("countTxs", 0)
+        txs = response.get("operations", [])[:5]
         tx_list = [{
-            "hash": tx["hash"],
-            "time": datetime.utcfromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M'),
-            "from": tx["from"],
-            "to": tx["to"],
-            "value": str(int(tx["value"]) / 1e18)
+            "hash": tx.get("transactionHash", ""),
+            "time": datetime.utcfromtimestamp(tx.get("timestamp", 0)).strftime('%Y-%m-%d %H:%M'),
+            "from": tx.get("from", ""),
+            "to": tx.get("to", ""),
+            "value": str(tx.get("value", 0))
         } for tx in txs]
-    except:
-        txs = []
-        tx_list = []
+        score, reason = calculate_risk_score({
+            "balance": balance,
+            "tx_count": tx_count,
+            "wallet_age": 0
+        })
 
-    score, reason = calculate_risk_score({
-        "balance": balance,
-        "tx_count": len(txs),
-        "wallet_age": 0
-    })
+        return {
+            "address": address,
+            "network": "Ethereum",
+            "balance": balance,
+            "ai_score": score,
+            "reason": reason,
+            "wallet_age": 0,
+            "tx_count": tx_count,
+            "last5tx": tx_list
+        }
 
-    return {
-        "address": address,
-        "network": "Ethereum",
-        "balance": balance,
-        "ai_score": score,
-        "reason": reason,
-        "wallet_age": 0,
-        "tx_count": len(txs),
-        "last5tx": tx_list
-    }
+    except Exception as e:
+        print(f"[Ethplorer Failed] {e}")
+        return default_result(address, "Ethereum", "❌ API rejected")
 
 # 🔻 Yang bawah ni dari kod asal kau, tak diubah langsung
 
