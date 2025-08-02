@@ -1,84 +1,70 @@
-from get_eth_data import get_eth_data
-from get_tron_data import get_tron_data
-from get_btc_data import get_btc_data
-from get_xrp_data import get_xrp_data
-from get_sol_data import get_sol_data
-from get_base_data import get_base_data
-from get_hedera_data import get_hedera_data
-from get_bsc_data import get_bsc_data
+import requests
+from datetime import datetime
 from ai_risk import calculate_risk_score
 from iso_export import generate_iso_xml
-from datetime import datetime
 
 def get_wallet_data(address):
     try:
         if address.startswith("0x") and len(address) == 42:
-            if address.lower().startswith("0x") and address[2:4].isdigit():
-                network = "BASE"
-                data = get_base_data(address)
-            else:
-                network = "Ethereum"
-                data = get_eth_data(address)
-
+            return fetch_eth_data(address)
         elif address.startswith("T") and len(address) == 34:
-            network = "TRON"
-            data = get_tron_data(address)
-
-        elif (address.startswith("1") or address.startswith("3") or address.startswith("bc1")):
-            network = "Bitcoin"
-            data = get_btc_data(address)
-
+            return fetch_tron_data(address)
+        elif address.startswith("1") or address.startswith("3") or address.startswith("bc1"):
+            return fetch_btc_data(address)
         elif address.startswith("r") and len(address) >= 25:
-            network = "XRP"
-            data = get_xrp_data(address)
-
-        elif address.startswith("H") and len(address) > 10:
-            network = "Hedera"
-            data = get_hedera_data(address)
-
-        elif address.endswith(".sol") or len(address) in [32, 44]:
-            network = "Solana"
-            data = get_sol_data(address)
-
-        elif address.startswith("bnb") or address[0:2] == "0x":
-            network = "BSC"
-            data = get_bsc_data(address)
-
+            return fetch_xrp_data(address)
+        elif address.startswith("sol") or len(address) == 44:
+            return fetch_sol_data(address)
+        elif address.lower().startswith("0x") and "base" in address.lower():
+            return fetch_base_data(address)
+        elif "-" in address and len(address) >= 42:
+            return fetch_hbar_data(address)
         else:
-            return {
-                "address": address,
-                "network": "Unknown",
-                "balance": 0,
-                "ai_score": 0,
-                "reason": "Unsupported or invalid wallet format.",
-                "wallet_age": 0,
-                "tx_count": 0,
-                "last5tx": []
-            }
-
-        ai_score, reason = calculate_risk_score(data)
-
-        result = {
-            "address": address,
-            "network": network,
-            "balance": data.get("balance", 0),
-            "ai_score": ai_score,
-            "reason": reason,
-            "wallet_age": data.get("wallet_age", 0),
-            "tx_count": data.get("tx_count", 0),
-            "last5tx": data.get("last5tx", [])
-        }
-
-        return result
-
+            return default_result(address, "Unknown", "Invalid wallet format")
     except Exception as e:
+        return default_result(address, "Unknown", f"Error: {str(e)}")
+
+def default_result(address, network, reason):
+    return {
+        "address": address,
+        "network": network,
+        "balance": 0,
+        "ai_score": 0,
+        "reason": reason,
+        "wallet_age": 0,
+        "tx_count": 0,
+        "last5tx": []
+    }
+
+def fetch_eth_data(address):
+    try:
+        url = f"https://api.etherscan.io/api?module=account&action=balance&address={address}&tag=latest&apikey=YourEtherscanAPIKey"
+        response = requests.get(url).json()
+        balance = int(response["result"]) / 1e18
+
+        txs_url = f"https://api.etherscan.io/api?module=account&action=txlist&address={address}&sort=desc&apikey=YourEtherscanAPIKey"
+        tx_response = requests.get(txs_url).json()
+        txs = tx_response.get("result", [])[:5]
+        tx_list = [{
+            "hash": tx["hash"],
+            "time": datetime.utcfromtimestamp(int(tx["timeStamp"])).strftime('%Y-%m-%d %H:%M'),
+            "from": tx["from"],
+            "to": tx["to"],
+            "value": str(int(tx["value"]) / 1e18)
+        } for tx in txs]
+
+        score = calculate_risk_score(balance, len(txs), 0)
+
         return {
             "address": address,
-            "network": "Unknown",
-            "balance": 0,
-            "ai_score": 0,
-            "reason": f"System error: {str(e)}",
+            "network": "Ethereum",
+            "balance": balance,
+            "ai_score": score,
+            "reason": "Fetched using Etherscan",
             "wallet_age": 0,
-            "tx_count": 0,
-            "last5tx": []
+            "tx_count": len(txs),
+            "last5tx": tx_list
         }
+
+    except Exception as e:
+        return default_result(address, "Ethereum", f"ETH Error: {str(e)}")
