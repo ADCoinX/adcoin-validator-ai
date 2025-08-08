@@ -6,7 +6,7 @@ import os
 
 app = Flask(__name__)
 
-def update_user_count():
+def read_user_count():
     count_file = os.path.join('static', 'user_count.txt')
     try:
         if os.path.exists(count_file):
@@ -14,6 +14,15 @@ def update_user_count():
                 count = int(f.read().strip())
         else:
             count = 0
+    except Exception as e:
+        print("Error reading user count:", e)
+        count = 0
+    return count
+
+def update_user_count():
+    count_file = os.path.join('static', 'user_count.txt')
+    try:
+        count = read_user_count()
         count += 1
         with open(count_file, 'w') as f:
             f.write(str(count))
@@ -25,11 +34,11 @@ def update_user_count():
 @app.route('/', methods=['GET', 'POST'])
 def home():
     result = {}
-    user_count = 0
+    user_count = read_user_count()  # Baca count dulu setiap load page
     if request.method == 'POST':
         address = request.form['wallet'].strip()
         result = get_wallet_data(address)
-        user_count = update_user_count()
+        user_count = update_user_count()  # Update count bila POST
     return render_template('index.html', result=result, user_count=user_count)
 
 @app.route('/export-iso')
