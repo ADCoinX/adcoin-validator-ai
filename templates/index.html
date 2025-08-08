@@ -1,99 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>ADC CRYPTOGUARD</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="overlay"></div>
-  <div class="container">
-    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
-    <h1>ADC CRYPTOGUARD</h1>
+from flask import Flask, render_template, request, send_file
+from api_handler import get_wallet_data
+from iso_export import generate_iso_xml
+import io
+import os
 
-    <form method="POST" action="/">
-      <input type="text" name="wallet" placeholder="Enter wallet address..." required />
-      <button type="submit">Validate Wallet</button>
-    </form>
+app = Flask(__name__)
 
-    <!-- START: User count display -->
-    <p style="color:#aaa; font-size:14px; margin-top:8px;">
-      Total Users Validated: {{ user_count }}
-    </p>
-    <!-- END: User count display -->
+def read_user_count():
+    count_file = os.path.join('static', 'user_count.txt')
+    try:
+        if os.path.exists(count_file):
+            with open(count_file, 'r') as f:
+                count = int(f.read().strip())
+        else:
+            count = 0
+    except Exception as e:
+        print("Error reading user count:", e)
+        count = 0
+    return count
 
-    {% if result and result.address %}
-    <div class="result">
-        <p><strong>Wallet:</strong> {{ result.address }}</p>
-        <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
-        <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
-        <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
-        <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
-        <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
-        <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
+def update_user_count():
+    count_file = os.path.join('static', 'user_count.txt')
+    try:
+        count = read_user_count()
+        count += 1
+        with open(count_file, 'w') as f:
+            f.write(str(count))
+    except Exception as e:
+        print("Error updating user count:", e)
+        count = 0
+    return count
 
-        {% if result.address and result.network != "Unknown" %}
-        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
-          ⬇️ Export ISO 20022 (XML)</a></p>
-        {% endif %}
-    </div>
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    result = {}
+    user_count = read_user_count()  # Baca count setiap kali page load
+    if request.method == 'POST':
+        address = request.form['wallet'].strip()
+        result = get_wallet_data(address)
+        user_count = update_user_count()  # Update count bila POST
+    return render_template('index.html', result=result, user_count=user_count)
 
-    {% if result.last5tx and result.last5tx|length > 0 %}
-      <div class="transactions" style="margin-top:25px;">
-        <h4>Last 5 Transactions:</h4>
-        <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
-          <tr>
-            <th>Hash</th>
-            <th>Date/Time</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Value</th>
-          </tr>
-          {% for tx in result.last5tx %}
-          <tr>
-            <td>
-              {% if result.network == "Ethereum" %}
-              <a href="https://etherscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "TRON" %}
-              <a href="https://tronscan.io/#/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "Bitcoin" %}
-              <a href="https://blockstream.info/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "Solana" %}
-              <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "XRP" %}
-              <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "BASE" %}
-              <a href="https://basescan.org/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% elif result.network == "Hedera" %}
-              <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-              {% else %}
-              <span>{{ tx.hash[:10] }}...</span>
-              {% endif %}
-            </td>
-            <td>{{ tx.time }}</td>
-            <td>{{ tx.from }}</td>
-            <td>{{ tx.to }}</td>
-            <td>{{ tx.value }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </div>
-    {% endif %}
-    {% endif %}
+@app.route('/export-iso')
+def export_iso():
+    wallet = request.args.get("wallet")
+    xml_data = generate_iso_xml(wallet)
+    return send_file(
+        io.BytesIO(xml_data.encode()),
+        mimetype='application/xml',
+        as_attachment=True,
+        download_name=f'{wallet}_iso20022.xml'
+    )
 
-    <p class="disclaimer">
-      ⚠️ Disclaimer: This tool is for informational purposes only. <br>
-      Risk analysis is based on public data. Final decisions are the responsibility of the user.
-    </p>
-
-    <p class="networks">
-      Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL, BASE, Hedera</strong>
-    </p>
-  </div>
-
-  <footer style="text-align:center; padding:10px; font-size:14px; color:#ccc;">
-    Powered by <b>ADCoin Validator</b> | Developed by <b>ADCX Lab</b> © 2025
-  </footer>
-</body>
-</html>
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 1000))
+    app.run(host='0.0.0.0', port=port)
