@@ -17,6 +17,12 @@
       <button type="submit">Validate Wallet</button>
     </form>
 
+    <!-- START: User count display -->
+    <p style="color:#aaa; font-size:14px; margin-top:8px;">
+      Total Users Validated: {{ user_count }}
+    </p>
+    <!-- END: User count display -->
+
     {% if result and result.address %}
     <div class="result">
         <p><strong>Wallet:</strong> {{ result.address }}</p>
