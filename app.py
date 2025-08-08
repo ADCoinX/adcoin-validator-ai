@@ -6,13 +6,31 @@ import os
 
 app = Flask(__name__)
 
+def update_user_count():
+    count_file = os.path.join('static', 'user_count.txt')
+    try:
+        if os.path.exists(count_file):
+            with open(count_file, 'r') as f:
+                count = int(f.read().strip())
+        else:
+            count = 0
+        count += 1
+        with open(count_file, 'w') as f:
+            f.write(str(count))
+    except Exception as e:
+        print("Error updating user count:", e)
+        count = 0
+    return count
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     result = {}
+    user_count = 0
     if request.method == 'POST':
         address = request.form['wallet'].strip()
         result = get_wallet_data(address)
-    return render_template('index.html', result=result)
+        user_count = update_user_count()
+    return render_template('index.html', result=result, user_count=user_count)
 
 @app.route('/export-iso')
 def export_iso():
