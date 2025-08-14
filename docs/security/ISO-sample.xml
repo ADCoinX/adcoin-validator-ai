@@ -1,0 +1,41 @@
+<!-- DUMMY ISO 20022 Export Example -->
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>DummyMessage12345</MsgId>
+      <CreDtTm>2025-01-01T12:00:00Z</CreDtTm>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>1000.00</CtrlSum>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>DummyPayment001</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <BtchBookg>true</BtchBookg>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>1000.00</CtrlSum>
+      <PmtTpInf>
+        <InstrPrty>NORM</InstrPrty>
+      </PmtTpInf>
+      <ReqdExctnDt>2025-01-02</ReqdExctnDt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <EndToEndId>DummyEndToEnd001</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">1000.00</InstdAmt>
+        </Amt>
+        <Cdtr>
+          <Nm>Example Receiver</Nm>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>XX00DUMMY00000000000000</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>Dummy Transaction for Audit Trail Example</Ustrd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>
