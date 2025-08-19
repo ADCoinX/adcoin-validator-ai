@@ -215,21 +215,25 @@ def fetch_tron(address: str) -> Dict[str, Any]:
 
     return _normalize_result(address, "TRON", balance=balance, tx_count=tx_count, last5tx=last5tx)
 
-# ---------- XRP ----------
+# ----------------------------
+# XRP FETCH (5 backup endpoints)
+# ----------------------------
 def fetch_xrp(address: str) -> Dict[str, Any]:
     safe_addr = quote(address, safe="")
     endpoints = [
-        f"https://data.ripple.com/v2/accounts/{safe_addr}",
+        f"https://data.ripple.com/v2/accounts/{safe_addr}/balances",
         f"https://api.xrpscan.com/api/v1/account/{safe_addr}",
-        f"https://xrpcharts.ripple.com/v2/accounts/{safe_addr}",
+        f"https://xrpcharts.ripple.com/v2/accounts/{safe_addr}/balances",
         f"https://xrpscan.com/api/v1/account/{safe_addr}",
-        f"https://livenet.xrpl.org/accounts/{safe_addr}.json"
+        f"https://livenet.xrpl.org/accounts/{safe_addr}"
     ]
+
     data = {}
     for url in endpoints:
         data = _http_get_json(url)
         if data and not data.get("error"):
             break
+
     if not data or data.get("error"):
         return {"status": "0", "message": API_REJECTED}
 
@@ -237,22 +241,22 @@ def fetch_xrp(address: str) -> Dict[str, Any]:
     tx_count = 0
     wallet_age_days = 0.0
 
+    # Ripple API standard fields
     acct_data = data.get("account_data") or data.get("account") or {}
     if isinstance(acct_data, dict):
-        bal_drops = acct_data.get("Balance")
-        if bal_drops is not None:
+        bal_drops = acct_data.get("Balance") or acct_data.get("balance")
+        if bal_drops:
             try:
-                balance = float(bal_drops)/1_000_000.0
+                balance = float(bal_drops) / 1_000_000.0  # convert drops → XRP
             except Exception:
-                pass
-        if acct_data.get("inception"):
-            try:
-                secs = int(acct_data["inception"])
-                wallet_age_days = max(0.0, (time.time() - secs) / 86400.0)
-            except Exception:
-                pass
+                balance = 0.0
 
-    return _normalize_result(address, "XRP", balance=balance, tx_count=tx_count, wallet_age_days=wallet_age_days)
+    return {
+        "status": "1",
+        "balance": balance,
+        "tx_count": tx_count,
+        "wallet_age_days": wallet_age_days
+    }
 
 # ---------- SOL ----------
 def fetch_solana(address: str) -> Dict[str, Any]:
