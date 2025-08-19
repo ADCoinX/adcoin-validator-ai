@@ -56,6 +56,7 @@ We prioritize security, transparency, and code quality across all ADCX Lab proje
 This repository is continuously monitored and validated against Infosec best practices.
 
 ### 📊 Code Quality & Security Scans
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
