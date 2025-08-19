@@ -5,6 +5,34 @@
   <title>ADC CRYPTOGUARD</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Minimal patch styles to replace deprecated attributes */
+    .result-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #222;
+      color: #fff;
+      font-size: 90%;
+      border: 1px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .result-table th, .result-table td {
+      padding: 8px 10px; /* replaces cellpadding */
+      border-bottom: 1px solid #333;
+    }
+    .result-table tr:last-child td { border-bottom: 0; }
+    .flash-list {
+      color: #ff6b6b;
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+      text-align: center;
+    }
+    .result a { color: #32cd32; text-decoration: none; }
+    .result a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
   <div class="overlay"></div>
@@ -20,7 +48,7 @@
     <!-- Flash messages for errors -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <ul style="color: red; list-style: none; padding: 0; margin: 10px 0; text-align: center;">
+        <ul class="flash-list">
           {% for message in messages %}
             <li>{{ message }}</li>
           {% endfor %}
@@ -44,49 +72,57 @@
         <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
 
         {% if result.address and result.network != "Unknown" %}
-          <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
-            ⬇️ Export ISO 20022 (XML)</a></p>
+          <p>
+            <a href="{{ url_for('export_iso', wallet=result.address) }}" target="_blank" rel="noopener">
+              ⬇️ Export ISO 20022 (XML)
+            </a>
+          </p>
         {% endif %}
       </div>
 
       {% if result.last5tx and result.last5tx|length > 0 %}
         <div class="transactions" style="margin-top:25px;">
           <h4>Last 5 Transactions:</h4>
-          <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
-            <tr>
-              <th>Hash</th>
-              <th>Date/Time</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Value</th>
-            </tr>
-            {% for tx in result.last5tx %}
+          <table class="result-table">
+            <thead>
               <tr>
-                <td>
-                  {% if result.network == "Ethereum" %}
-                    <a href="https://etherscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "TRON" %}
-                    <a href="https://tronscan.io/#/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "Bitcoin" %}
-                    <a href="https://blockstream.info/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "Solana" %}
-                    <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "XRP" %}
-                    <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "BASE" %}
-                    <a href="https://basescan.org/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% elif result.network == "Hedera" %}
-                    <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-                  {% else %}
-                    <span>{{ tx.hash[:10] }}...</span>
-                  {% endif %}
-                </td>
-                <td>{{ tx.time }}</td>
-                <td>{{ tx.from }}</td>
-                <td>{{ tx.to }}</td>
-                <td>{{ tx.value }}</td>
+                <th>Hash</th>
+                <th>Date/Time</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Value</th>
               </tr>
-            {% endfor %}
+            </thead>
+            <tbody>
+              {% for tx in result.last5tx %}
+                <tr>
+                  <td>
+                    {% set short = (tx.hash or '')[:10] ~ '...' %}
+                    {% if result.network == "Ethereum" %}
+                      <a href="https://etherscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "TRON" %}
+                      <a href="https://tronscan.io/#/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "Bitcoin" %}
+                      <a href="https://blockstream.info/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "Solana" %}
+                      <a href="https://solscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "XRP" %}
+                      <a href="https://xrpscan.com/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "BASE" %}
+                      <a href="https://basescan.org/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% elif result.network == "Hedera" %}
+                      <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                    {% else %}
+                      <span>{{ short }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ tx.time }}</td>
+                  <td>{{ tx.from }}</td>
+                  <td>{{ tx.to }}</td>
+                  <td>{{ tx.value }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
       {% endif %}
@@ -95,7 +131,7 @@
     <p id="disclaimer" style="margin-top:10px;font-size:14px;color:#bfc6cc;text-align:center;">
       ⚠️ Disclaimer: This tool is for informational purposes only. No sensitive data is stored.
       Results are based on public blockchain data — final decisions are the responsibility of the user.
-      <a href="https://autodigitalcoin.com/ADC-CryptoGuard-Disclaimer.pdf" target="_blank" style="color:#49f2c2;text-decoration:none;">
+      <a href="https://autodigitalcoin.com/ADC-CryptoGuard-Disclaimer.pdf" target="_blank" rel="noopener" style="color:#49f2c2;text-decoration:none;">
         Full Disclaimer
       </a>
     </p>
