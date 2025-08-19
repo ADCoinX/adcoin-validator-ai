@@ -49,6 +49,34 @@ ADC CryptoGuard will integrate with the XRPL Mainnet and Sidechain using the fol
 
 ---
 
+## 🔐 Security & Infosec Compliance
+
+We prioritize **security, transparency, and code quality** across all ADCX Lab projects.  
+This repository is continuously monitored and validated against **Infosec best practices**.
+
+### ✅ Code Quality & Security Scans
+- [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adcoin-validator-ai)
+- [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=adcoin-validator-ai)
+- [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=adcoin-validator-ai)
+- [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=adcoin-validator-ai)
+
+### 🔎 Security Practices
+- No sensitive API keys or credentials stored in this repo.  
+- All blockchain data fetched from **public APIs only**.  
+- Regular code scans with **SonarQube / SonarCloud**.  
+- Dependencies monitored via **Dependabot** for vulnerabilities.  
+- Public transparency for Infosec reviewers.
+
+### 📄 Compliance Evidence
+- **ISO 20022 XML Export** (pain.001) supported for validation reporting.  
+- Clean audit trail via GitHub commits & release tags.  
+- Adopts “Verified First, Trust Later” principle.  
+
+---
+
+> ⚠️ *Disclaimer*: This project is for **educational and security research purposes**.  
+> Final decisions and risk assessments remain the responsibility of the user.
+
 ## 🖼️ NFT Integration
 
 We have also launched an official NFT collection as part of ADCoin ecosystem:
