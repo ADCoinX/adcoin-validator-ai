@@ -55,13 +55,14 @@ ADC CryptoGuard will integrate with the XRPL Mainnet and Sidechain using the fol
 We prioritize security, transparency, and code quality across all ADCX Lab projects.  
 This repository is continuously monitored and validated against Infosec best practices.
 
-### 📊 Code Quality & Security Scans
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=yusri_adib_adcoin-validator-ai&metric=coverage)](https://sonarcloud.io/summary/new_code?id=yusri_adib_adcoin-validator-ai)
+### 📊 Code Quality & Security Scans
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=adcoix_adcoin-validator-ai&metric=bugs)](https://sonarcloud.io/summary/new_code?id=adcoix_adcoin-validator-ai)
 
 ---
 
