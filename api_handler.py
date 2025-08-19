@@ -1,134 +1,327 @@
+from __future__ import annotations
+import time
+import re
+from typing import Any, Dict, List, Optional
 import requests
-from datetime import datetime, timezone
 from urllib.parse import quote
-from ai_risk import calculate_risk_score
-from iso_export import generate_iso_xml
+from requests.exceptions import RequestException, Timeout
 
-# Constants
-API_REJECTED_MSG = "❌ API rejected"
+API_REJECTED = "❌ API rejected"
+NETWORK_TIMEOUT = 12
 
-def sanitize_address(address):
-    return quote(address.lower())  # Encode URL untuk elak injection
+WALLET_PATTERNS = [
+    re.compile(r"^0x[a-fA-F0-9]{40}$"),                     # ETH/EVM
+    re.compile(r"^T[1-9A-HJ-NP-Za-km-z]{33}$"),             # TRON
+    re.compile(r"^(?:bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}$"),  # BTC
+    re.compile(r"^r[1-9A-HJ-NP-Za-km-z]{24,}$"),            # XRP
+    re.compile(r"^[1-9A-HJ-NP-Za-km-z]{44}$"),              # SOL
+    re.compile(r"^0\.0\.\d+$"),                             # HBAR
+]
 
-def get_wallet_data(address):
+def is_wallet_format_ok(addr: str) -> bool:
+    return any(p.fullmatch(addr) for p in WALLET_PATTERNS)
+
+def _http_get_json(url: str, params: dict | None = None, timeout: int = NETWORK_TIMEOUT) -> Dict[str, Any]:
     try:
-        safe_address = sanitize_address(address)
-        if not safe_address:
-            raise ValueError("Invalid wallet format")
+        r = requests.get(url, params=params, timeout=timeout)
+        r.raise_for_status()
+        return r.json()
+    except Timeout as e:
+        return {"error": f"timeout: {e}"}
+    except RequestException as e:
+        return {"error": f"network: {e}"}
+    except ValueError as e:
+        return {"error": f"json: {e}"}
 
-        if safe_address.startswith("0x") and len(safe_address) == 42:
-            return fetch_eth_data(safe_address)
-        elif safe_address.startswith("T") and len(safe_address) == 34:
-            return fetch_tron_data(safe_address)
-        elif safe_address.startswith("1") or safe_address.startswith("3") or safe_address.startswith("bc1"):
-            return fetch_btc_data(safe_address)
-        elif safe_address.startswith("r") and len(safe_address) >= 25:
-            return fetch_xrp_data(safe_address)
-        elif len(safe_address) == 44:
-            return fetch_sol_data(safe_address)
-        elif safe_address.startswith("0.0.") and safe_address.count(".") == 2:
-            return fetch_hbar_data(safe_address)
-        elif safe_address.lower().startswith("0x") and "base" in safe_address.lower():
-            return fetch_base_data(safe_address)
+def _http_post_json(url: str, payload: dict, timeout: int = NETWORK_TIMEOUT) -> Dict[str, Any]:
+    try:
+        r = requests.post(url, json=payload, timeout=timeout)
+        r.raise_for_status()
+        return r.json()
+    except Timeout as e:
+        return {"error": f"timeout: {e}"}
+    except RequestException as e:
+        return {"error": f"network: {e}"}
+    except ValueError as e:
+        return {"error": f"json: {e}"}
+
+def _wei_to_eth(wei_hex_or_int: Any) -> float:
+    try:
+        if isinstance(wei_hex_or_int, str):
+            val = int(wei_hex_or_int, 16)
         else:
-            raise ValueError("Invalid wallet format")
-    except ValueError as ve:
-        return {"status": "0", "message": "NOTOK", "result": str(ve)}
-    except requests.exceptions.RequestException as re:
-        return default_result(address, "Unknown", f"❌ Error: {str(re)}")
-    except Exception as e:
-        return default_result(address, "Unknown", f"❌ Error: {str(e)}")
+            val = int(wei_hex_or_int)
+        return val / 10**18
+    except Exception:
+        return 0.0
 
-def default_result(address, network, reason):
+def _lamports_to_sol(lamports: int) -> float:
+    try:
+        return int(lamports) / 10**9
+    except Exception:
+        return 0.0
+
+def _hbar_tinybars_to_hbar(tinybars: int) -> float:
+    try:
+        return int(tinybars) / 10**8
+    except Exception:
+        return 0.0
+
+def _score(ai_inputs: Dict[str, Any]) -> int:
+    tx = int(ai_inputs.get("tx_count") or 0)
+    age_days = float(ai_inputs.get("wallet_age") or 0.0)
+    bal = float(ai_inputs.get("balance") or 0.0)
+
+    score = 50
+    score += min(20, age_days / 30)
+    score += min(20, max(0, 5 - tx))
+    if tx > 100: score -= 10
+    if bal == 0: score -= 10
+    return max(0, min(100, round(score)))
+
+def _normalize_result(address: str, network: str, balance: float = 0.0,
+                      tx_count: int = 0, wallet_age_days: float = 0.0,
+                      last5tx: Optional[List[Dict[str, Any]]] = None,
+                      reason: str = "OK") -> Dict[str, Any]:
     return {
         "address": address,
         "network": network,
-        "balance": 0,
-        "ai_score": 0,
+        "balance": balance,
+        "tx_count": tx_count,
+        "wallet_age": round(wallet_age_days, 2) if wallet_age_days else 0,
+        "last5tx": last5tx or [],
         "reason": reason,
-        "wallet_age": 0,
-        "tx_count": 0,
-        "last5tx": []
+        "ai_score": _score({"tx_count": tx_count, "wallet_age": wallet_age_days, "balance": balance})
     }
 
-def fetch_eth_data(address):
-    try:
-        # API 1: Ethplorer (public free tier)
-        url = f"https://api.ethplorer.io/getAddressInfo/{address}?apiKey=freekey"
-        response = requests.get(url, timeout=10).json()
-        balance = response.get("ETH", {}).get("balance", 0)
-        tx_count = response.get("countTxs", 0)
-        txs = response.get("operations", [])[:5]
-        tx_list = [{
-            "hash": tx.get("transactionHash", ""),
-            "time": datetime.fromtimestamp(tx.get("timestamp", 0), tz=timezone.utc).strftime('%Y-%m-%d %H:%M'),
-            "from": tx.get("from", ""),
-            "to": tx.get("to", ""),
-            "value": str(tx.get("value", 0))
-        } for tx in txs]
-        score, reason = calculate_risk_score({
-            "balance": balance,
-            "tx_count": tx_count,
-            "wallet_age": 0
-        })
-        return {
-            "address": address,
-            "network": "Ethereum",
-            "balance": balance,
-            "ai_score": score,
-            "reason": reason,
-            "wallet_age": 0,
-            "tx_count": tx_count,
-            "last5tx": tx_list
-        }
-    except requests.exceptions.RequestException as e:
-        print(f"[Ethplorer Failed] {e}")
-        try:
-            # API 2: Blockscout (public)
-            url = f"https://eth.blockscout.com/api/v2/addresses/{address}"
-            response = requests.get(url, timeout=10).json()
-            balance = int(response.get("coin_balance", 0)) / 1e18
-            tx_count = response.get("transactions_count", 0)
-            score, reason = calculate_risk_score({
-                "balance": balance,
-                "tx_count": tx_count,
-                "wallet_age": 0
-            })
-            return {
-                "address": address,
-                "network": "Ethereum",
-                "balance": balance,
-                "ai_score": score,
-                "reason": reason,
-                "wallet_age": 0,
-                "tx_count": tx_count,
-                "last5tx": []
-            }
-        except requests.exceptions.RequestException as e:
-            print(f"[Blockscout Failed] {e}")
+# ---------- ETH / EVM ----------
+def fetch_eth(address: str) -> Dict[str, Any]:
+    rpcs = [
+        "https://cloudflare-eth.com",
+        "https://rpc.ankr.com/eth",
+        "https://ethereum.publicnode.com",
+        "https://rpc.flashbots.net",
+        "https://eth-mainnet.public.blastapi.io",
+    ]
+    nonce = None
+    balance = None
+    for rpc in rpcs:
+        r1 = _http_post_json(rpc, {"jsonrpc":"2.0","id":1,"method":"eth_getBalance","params":[address, "latest"]})
+        if not r1.get("error") and r1.get("result"):
+            balance = _wei_to_eth(r1["result"])
+        r2 = _http_post_json(rpc, {"jsonrpc":"2.0","id":2,"method":"eth_getTransactionCount","params":[address, "latest"]})
+        if not r2.get("error") and r2.get("result"):
             try:
-                # API 3: DeFiLlama (public)
-                url = f"https://coins.llama.fi/prices/current/ethereum:{address}"
-                response = requests.get(url, timeout=10).json()
-                balance = response.get("coins", {}).get(f"ethereum:{address}", {}).get("price", 0)
-                tx_count = 0
-                score, reason = calculate_risk_score({
-                    "balance": balance,
-                    "tx_count": tx_count,
-                    "wallet_age": 0
-                })
-                return {
-                    "address": address,
-                    "network": "Ethereum",
-                    "balance": balance,
-                    "ai_score": score,
-                    "reason": reason,
-                    "wallet_age": 0,
-                    "tx_count": tx_count,
-                    "last5tx": []
-                }
-            except requests.exceptions.RequestException as e:
-                print(f"[DeFiLlama Failed] {e}")
-                return default_result(address, "Ethereum", API_REJECTED_MSG)
+                nonce = int(r2["result"], 16)
+            except Exception:
+                pass
+        if balance is not None and nonce is not None:
+            break
+    if balance is None and nonce is None:
+        return {"status": "0", "message": API_REJECTED}
+    return _normalize_result(address, "Ethereum", balance=balance or 0.0, tx_count=nonce or 0)
 
-# (Kod untuk fetch_tron_data, fetch_btc_data, fetch_xrp_data, fetch_sol_data, fetch_hbar_data, fetch_base_data serupa seperti sebelum ini, dengan public API je—aku tak ubah sebab dah ok, tapi kalau nak full, copy dari versi lama)
+# ---------- BTC ----------
+def fetch_btc(address: str) -> Dict[str, Any]:
+    safe_addr = quote(address, safe="")
+    endpoints = [
+        f"https://blockchain.info/rawaddr/{safe_addr}",
+        f"https://blockstream.info/api/address/{safe_addr}",
+        f"https://api.blockcypher.com/v1/btc/main/addrs/{safe_addr}",
+        f"https://api.blockchair.com/bitcoin/dashboards/address/{safe_addr}",
+        f"https://mempool.space/api/address/{safe_addr}",
+    ]
+    data = {}
+    for url in endpoints:
+        data = _http_get_json(url)
+        if data and not data.get("error"):
+            break
+    if not data or data.get("error"):
+        return {"status": "0", "message": API_REJECTED}
+
+    balance = 0.0
+    tx_count = 0
+    last5tx = []
+
+    if "final_balance" in data or "n_tx" in data:
+        balance = (data.get("final_balance") or 0)/1e8
+        tx_count = data.get("n_tx") or 0
+        txs = data.get("txs") or []
+        for tx in txs[:5]:
+            h = tx.get("hash") or ""
+            t = tx.get("time")
+            if t: t = time.strftime("%Y-%m-%d %H:%M", time.gmtime(t))
+            last5tx.append({"hash": h, "time": t, "from": "-", "to": "-", "value": "-"})
+    elif "chain_stats" in data:
+        bal_sat = (data["chain_stats"].get("funded_txo_sum", 0) - data["chain_stats"].get("spent_txo_sum", 0))
+        balance = max(0, bal_sat)/1e8
+        tx_count = data["chain_stats"].get("tx_count", 0)
+    elif "data" in data and isinstance(data["data"], dict):
+        dash = (data["data"].get(address) or {}).get("address", {})
+        balance = (dash.get("balance") or 0)/1e8
+        tx_count = dash.get("transaction_count") or 0
+    elif "balance" in data and "final_n_tx" in data:
+        balance = (data.get("final_balance") or data.get("balance") or 0)/1e8
+        tx_count = data.get("final_n_tx") or data.get("n_tx") or 0
+
+    return _normalize_result(address, "Bitcoin", balance=balance, tx_count=tx_count, last5tx=last5tx)
+
+# ---------- TRON ----------
+def fetch_tron(address: str) -> Dict[str, Any]:
+    safe_addr = quote(address, safe="")
+    endpoints = [
+        f"https://apilist.tronscanapi.com/api/account?address={safe_addr}",
+        f"https://apilist.trongrid.io/v1/accounts/{safe_addr}",
+        f"https://apilist.tronscan.org/api/account?address={safe_addr}",
+        f"https://apilist.trongrid.io/v1/accounts/{safe_addr}/transactions",
+        f"https://tronscan.org/api/accountv2?address={safe_addr}",
+    ]
+    data = {}
+    for url in endpoints:
+        data = _http_get_json(url)
+        if data and not data.get("error"):
+            break
+    if not data or data.get("error"):
+        return {"status": "0", "message": API_REJECTED}
+
+    balance = 0.0
+    tx_count = 0
+    last5tx: List[Dict[str, Any]] = []
+
+    if "balance" in data:
+        try:
+            balance = float(data.get("balance") or 0)
+        except Exception:
+            balance = 0.0
+    elif "data" in data and isinstance(data["data"], list) and data["data"]:
+        acc = data["data"][0]
+        balance = float(acc.get("balance", 0))/1e6 if isinstance(acc.get("balance"), (int, float)) else 0.0
+
+    txs = data.get("tokenTransferTxs") or data.get("transaction") or data.get("data") or []
+    if isinstance(txs, list):
+        tx_count = len(txs)
+        for tx in txs[:5]:
+            h = tx.get("hash") or tx.get("txID") or ""
+            t = tx.get("timestamp") or tx.get("block_timestamp")
+            if t and isinstance(t, (int, float)):
+                t = time.strftime("%Y-%m-%d %H:%M", time.gmtime(t/1000 if t > 1e12 else t))
+            last5tx.append({
+                "hash": h,
+                "time": t,
+                "from": tx.get("transferFromAddress") or "-",
+                "to": tx.get("transferToAddress") or "-",
+                "value": tx.get("amount") or "-"
+            })
+
+    return _normalize_result(address, "TRON", balance=balance, tx_count=tx_count, last5tx=last5tx)
+
+# ---------- XRP ----------
+def fetch_xrp(address: str) -> Dict[str, Any]:
+    safe_addr = quote(address, safe="")
+    endpoints = [
+        f"https://data.ripple.com/v2/accounts/{safe_addr}",
+        f"https://api.xrpscan.com/api/v1/account/{safe_addr}",
+        f"https://xrpcharts.ripple.com/v2/accounts/{safe_addr}",
+        f"https://xrpscan.com/api/v1/account/{safe_addr}",
+        f"https://livenet.xrpl.org/accounts/{safe_addr}.json"
+    ]
+    data = {}
+    for url in endpoints:
+        data = _http_get_json(url)
+        if data and not data.get("error"):
+            break
+    if not data or data.get("error"):
+        return {"status": "0", "message": API_REJECTED}
+
+    balance = 0.0
+    tx_count = 0
+    wallet_age_days = 0.0
+
+    acct_data = data.get("account_data") or data.get("account") or {}
+    if isinstance(acct_data, dict):
+        bal_drops = acct_data.get("Balance")
+        if bal_drops is not None:
+            try:
+                balance = float(bal_drops)/1_000_000.0
+            except Exception:
+                pass
+        if acct_data.get("inception"):
+            try:
+                secs = int(acct_data["inception"])
+                wallet_age_days = max(0.0, (time.time() - secs) / 86400.0)
+            except Exception:
+                pass
+
+    return _normalize_result(address, "XRP", balance=balance, tx_count=tx_count, wallet_age_days=wallet_age_days)
+
+# ---------- SOL ----------
+def fetch_solana(address: str) -> Dict[str, Any]:
+    rpcs = [
+        "https://api.mainnet-beta.solana.com",
+        "https://rpc.ankr.com/solana",
+        "https://solana.publicnode.com",
+        "https://api.solana.com",
+        "https://solana-api.projectserum.com",
+    ]
+    balance = None
+    for rpc in rpcs:
+        res = _http_post_json(rpc, {"jsonrpc":"2.0","id":1,"method":"getBalance","params":[address]})
+        if not res.get("error") and res.get("result"):
+            value = res["result"].get("value")
+            if value is not None:
+                balance = _lamports_to_sol(value)
+                break
+    if balance is None:
+        return {"status": "0", "message": API_REJECTED}
+    return _normalize_result(address, "Solana", balance=balance, tx_count=0)
+
+# ---------- HBAR ----------
+def fetch_hbar(address: str) -> Dict[str, Any]:
+    safe_addr = quote(address, safe="")
+    endpoints = [
+        f"https://mainnet-public.mirrornode.hedera.com/api/v1/accounts/{safe_addr}",
+        f"https://mainnet-public.mirrornode.hedera.com/api/v1/balances?account.id={safe_addr}",
+        f"https://mainnet-public.mirrornode.hedera.com/api/v1/transactions?account.id={safe_addr}",
+        f"https://testnet.mirrornode.hedera.com/api/v1/accounts/{safe_addr}",
+        f"https://mainnet-public.mirrornode.hedera.com/api/v1/tokens?account.id={safe_addr}",
+    ]
+    data = {}
+    for url in endpoints:
+        data = _http_get_json(url)
+        if data and not data.get("error"):
+            break
+    if not data or data.get("error"):
+        return {"status": "0", "message": API_REJECTED}
+
+    balance = 0.0
+    tx_count = 0
+
+    if "balance" in data and isinstance(data.get("balance"), dict) and "balance" in data["balance"]:
+        balance = _hbar_tinybars_to_hbar(data["balance"]["balance"])
+    elif "balances" in data and isinstance(data["balances"], list) and data["balances"]:
+        balance = _hbar_tinybars_to_hbar((data["balances"][0] or {}).get("balance", 0))
+
+    if "transactions" in data and isinstance(data["transactions"], list):
+        tx_count = len(data["transactions"])
+
+    return _normalize_result(address, "Hedera", balance=balance, tx_count=tx_count)
+
+# ---------- Router ----------
+def get_wallet_data(address: str) -> Dict[str, Any]:
+    if not is_wallet_format_ok(address):
+        return {"status": "0", "message": "❌ Invalid wallet format", "result": ""}
+
+    if address.startswith("0x") and len(address) == 42:
+        return fetch_eth(address)
+    if address.startswith("T") and len(address) == 34:
+        return fetch_tron(address)
+    if address.startswith(("1", "3", "bc1")):
+        return fetch_btc(address)
+    if address.startswith("r") and len(address) >= 25:
+        return fetch_xrp(address)
+    if len(address) == 44 and re.fullmatch(r"[1-9A-HJ-NP-Za-km-z]{44}", address):
+        return fetch_solana(address)
+    if address.startswith("0.0.") and address.count(".") == 2:
+        return fetch_hbar(address)
+
+    return {"status": "0", "message": "❌ Chain not recognized"}
