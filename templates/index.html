@@ -1,69 +1,215 @@
-<form method="POST" action="/">
-  <input type="text" name="wallet" placeholder="Enter wallet address..." required />
-  <button type="submit">Validate Wallet</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ADC CRYPTOGUARD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="container">
+    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
+    <h1>ADC CRYPTOGUARD</h1>
 
-<!-- START: User count display -->
-<p style="color:#aaa; font-size:14px; margin-top:8px;">
-  Total Users Validated: {{ user_count }}
-</p>
-<!-- END: User count display -->
+    <form method="POST" action="/">
+      <input type="text" name="wallet" placeholder="Enter wallet address..." required />
+      <button type="submit">Validate Wallet</button>
+    </form>
 
-{% if result and result.address %}
-<div class="result">
-    <p><strong>Wallet:</strong> {{ result.address }}</p>
-    <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
-    <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
-    <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
-    <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
-    <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
-    <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
-
-    {% if result.address and result.network != "Unknown" %}
-    <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
-      ⬇️ Export ISO 20022 (XML)</a></p>
+    <!-- Flash messages untuk error (letak sini supaya nampak atas result) -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul style="color: red; list-style: none; padding: 0; margin: 10px 0; text-align: center;">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
     {% endif %}
-</div>
+    {% endwith %}
 
-{% if result.last5tx and result.last5tx|length > 0 %}
-  <div class="transactions" style="margin-top:25px;">
-    <h4>Last 5 Transactions:</h4>
-    <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
-      <tr>
-        <th>Hash</th>
-        <th>Date/Time</th>
-        <th>From</th>
-        <th>To</th>
-        <th>Value</th>
-      </tr>
-      {% for tx in result.last5tx %}
-      <tr>
-        <td>
-          {% if result.network == "Ethereum" %}
-          <a href="https://etherscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "TRON" %}
-          <a href="https://tronscan.io/#/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "Bitcoin" %}
-          <a href="https://blockstream.info/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "Solana" %}
-          <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "XRP" %}
-          <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "BASE" %}
-          <a href="https://basescan.org/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% elif result.network == "Hedera" %}
-          <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
-          {% else %}
-          <span>{{ tx.hash[:10] }}...</span>
-          {% endif %}
-        </td>
-        <td>{{ tx.time }}</td>
-        <td>{{ tx.from }}</td>
-        <td>{{ tx.to }}</td>
-        <td>{{ tx.value }}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <!-- START: User count display -->
+    <p style="color:#aaa; font-size:14px; margin-top:8px;">
+      Total Users Validated: {{ user_count }}
+    </p>
+    <!-- END: User count display -->
+
+    {% if result and result.address %}
+    <div class="result">
+        <p><strong>Wallet:</strong> {{ result.address }}</p>
+        <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
+        <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
+        <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
+        <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
+        <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
+        <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
+
+        {% if result.address and result.network != "Unknown" %}
+        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
+          ⬇️ Export ISO 20022 (XML)</a></p>
+        {% endif %}
+    </div>
+
+    {% if result.last5tx and result.last5tx|length > 0 %}
+      <div class="transactions" style="margin-top:25px;">
+        <h4>Last 5 Transactions:</h4>
+        <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
+          <tr>
+            <th>Hash</th>
+            <th>Date/Time</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Value</th>
+          </tr>
+          {% for tx in result.last5tx %}
+          <tr>
+            <td>
+              {% if result.network == "Ethereum" %}
+              <a First, the user is showing an image of the ADC CryptoGuard web page with a validation result for an Ethereum wallet. The result includes Wallet, Network, Balance, AI Risk Score, Risk Analysis, Wallet Age, Transaction Count, and a link to Export ISO 20022 XML. But there's no "Last 5 Transactions" section.
+
+The user says "asal hilamh semua ni", which in Malay means "why did all this disappear".
+
+From the conversation history, the user has been working on fixing the code for the app, particularly the template index.html, to include flash messages for errors.
+
+In the previous message, the user pasted the index.html code, and I responded with a modified version that includes the flash messages block at the top.
+
+But in my response, I placed the flash messages block before the <!DOCTYPE html>, which is wrong. That could cause the HTML to be invalid, leading to rendering issues or things disappearing.
+
+The problem is that in my last response, the flash messages code is outside the HTML structure:
+
+{% with messages = get_flashed_messages() %}
+... 
+{% endwith %}
+
+Then the <!DOCTYPE html> follows.
+
+This would mean the flash messages are not part of the HTML body, so they might not render, or the whole page might break.
+
+Additionally, in the flash messages loop, I have {% for message in get_flashed_messages() %}, which is a mistake because I already have messages = get_flashed_messages() in the with block.
+
+The correct way is to place the flash messages inside the <body>, probably above the form or below the form.
+
+To fix this, I need to provide the corrected index.html with the flash messages integrated properly inside the HTML.
+
+The user is asking "asal hilamh semua ni" referring to the image where the transactions are missing, but from the image, the transactions section is not shown, perhaps because result.last5tx is empty.
+
+The image shows "Transaction Count: 0", so last5tx is likely empty, hence the section is not shown.
+
+But the user might be referring to the flash messages not appearing or something disappearing after the change.
+
+The user says "asal hilamh semua ni" after pasting the code, perhaps meaning why did the code change or something disappeared in the response.
+
+I think the issue is my response had the flash code outside the HTML, so when copied, the page might not render correctly.
+
+To respond, I should provide the full corrected index.html with flash messages inside the body.{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul style="color: red; list-style: none; padding: 0; margin: 10px 0;">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ADC CRYPTOGUARD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="container">
+    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
+    <h1>ADC CRYPTOGUARD</h1>
+
+    <form method="POST" action="/">
+      <input type="text" name="wallet" placeholder="Enter wallet address..." required />
+      <button type="submit">Validate Wallet</button>
+    </form>
+
+    <!-- START: User count display -->
+    <p style="color:#aaa; font-size:14px; margin-top:8px;">
+      Total Users Validated: {{ user_count }}
+    </p>
+    <!-- END: User count display -->
+
+    {% if result and result.address %}
+    <div class="result">
+        <p><strong>Wallet:</strong> {{ result.address }}</p>
+        <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
+        <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
+        <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
+        <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
+        <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
+        <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
+
+        {% if result.address and result.network != "Unknown" %}
+        <p><a href="/export-iso?wallet={{ result.address }}" target="_blank" style="color:limegreen;">
+          ⬇️ Export ISO 20022 (XML)</a></p>
+        {% endif %}
+    </div>
+
+    {% if result.last5tx and result.last5tx|length > 0 %}
+      <div class="transactions" style="margin-top:25px;">
+        <h4>Last 5 Transactions:</h4>
+        <table border="1" cellpadding="5" style="background:#222;color:#fff;width:100%;font-size:90%;">
+          <tr>
+            <th>Hash</th>
+            <th>Date/Time</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Value</th>
+          </tr>
+          {% for tx in result.last5tx %}
+          <tr>
+            <td>
+              {% if result.network == "Ethereum" %}
+              <a href="https://etherscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "TRON" %}
+              <a href="https://tronscan.io/#/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Bitcoin" %}
+              <a href="https://blockstream.info/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Solana" %}
+              <a href="https://solscan.io/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "XRP" %}
+              <a href="https://xrpscan.com/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "BASE" %}
+              <a href="https://basescan.org/tx/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% elif result.network == "Hedera" %}
+              <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash }}" target="_blank" style="color:#0af;">{{ tx.hash[:10] }}...</a>
+              {% else %}
+              <span>{{ tx.hash[:10] }}...</span>
+              {% endif %}
+            </td>
+            <td>{{ tx.time }}</td>
+            <td>{{ tx.from }}</td>
+            <td>{{ tx.to }}</td>
+            <td>{{ tx.value }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+    {% endif %}
+
+ <p id="disclaimer" style="margin-top:10px;font-size:14px;color:#bfc6cc;text-align:center;">
+  ⚠️ Disclaimer: This tool is for informational purposes only. No sensitive data is stored.
+  Results are based on public blockchain data — final decisions are the responsibility of the user.
+  <a href="https://autodigitalcoin.com/ADC-CryptoGuard-Disclaimer.pdf" target="_blank" style="color:#49f2c2;text-decoration:none;">
+    Full Disclaimer
+  </a>
+</p>
+
+    <p class="networks">
+      Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL, BASE, Hedera</strong>
+    </p>
   </div>
-{% endif %}
-{% endif %}
+
+  <footer style="text-align:center; padding:10px; font-size:14px; color:#ccc;">
+    Powered by <b>ADCoin Validator</b> | Developed by <b>ADCX Lab</b> © 2025
+  </footer>
+</body>
+</html>
