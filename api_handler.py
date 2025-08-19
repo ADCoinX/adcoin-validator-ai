@@ -216,47 +216,101 @@ def fetch_tron(address: str) -> Dict[str, Any]:
     return _normalize_result(address, "TRON", balance=balance, tx_count=tx_count, last5tx=last5tx)
 
 # ----------------------------
-# XRP FETCH (5 backup endpoints)
+# XRP FETCH — gunakan rippled JSON-RPC (balance tepat) + Ripple Data API (age/tx)
 # ----------------------------
 def fetch_xrp(address: str) -> Dict[str, Any]:
+    from urllib.parse import quote
+    import time
     safe_addr = quote(address, safe="")
-    endpoints = [
-        f"https://data.ripple.com/v2/accounts/{safe_addr}/balances",
-        f"https://api.xrpscan.com/api/v1/account/{safe_addr}",
-        f"https://xrpcharts.ripple.com/v2/accounts/{safe_addr}/balances",
-        f"https://xrpscan.com/api/v1/account/{safe_addr}",
-        f"https://livenet.xrpl.org/accounts/{safe_addr}"
+
+    # 1) Dapatkan BALANCE melalui rippled JSON-RPC (public nodes — tiada API key)
+    rippled_nodes = [
+        "https://xrplcluster.com",          # community cluster
+        "https://s1.ripple.com:51234/",     # Ripple public
+        "https://s2.ripple.com:51234/",     # Ripple public
+        "https://xrpl.link/rpc",            # gateway
+        "https://rippled.xrpldata.com/"     # community
     ]
+    balance = None
+    for rpc in rippled_nodes:
+        res = _http_post_json(rpc, {
+            "method": "account_info",
+            "params": [{"account": address, "ledger_index": "validated", "strict": True}]
+        })
+        if res.get("result") and res["result"].get("status") == "success":
+            acct = res["result"].get("account_data") or {}
+            bal_drops = acct.get("Balance")
+            if bal_drops is not None:
+                try:
+                    balance = float(bal_drops) / 1_000_000.0  # drops -> XRP
+                    break
+                except Exception:
+                    balance = 0.0
 
-    data = {}
-    for url in endpoints:
-        data = _http_get_json(url)
-        if data and not data.get("error"):
-            break
-
-    if not data or data.get("error"):
-        return {"status": "0", "message": API_REJECTED}
-
-    balance = 0.0
-    tx_count = 0
-    wallet_age_days = 0.0
-
-    # Ripple API standard fields
-    acct_data = data.get("account_data") or data.get("account") or {}
-    if isinstance(acct_data, dict):
-        bal_drops = acct_data.get("Balance") or acct_data.get("balance")
-        if bal_drops:
+    # Jika semua RPC gagal, cuba Ripple Data API /balances (kadang bagi nilai terus)
+    if balance is None:
+        resp = _http_get_json(f"https://data.ripple.com/v2/accounts/{safe_addr}/balances")
+        if resp and not resp.get("error"):
             try:
-                balance = float(bal_drops) / 1_000_000.0  # convert drops → XRP
+                for b in resp.get("balances", []):
+                    if b.get("currency") == "XRP":
+                        balance = float(b.get("value", 0))
+                        break
             except Exception:
                 balance = 0.0
 
-    return {
-        "status": "1",
-        "balance": balance,
-        "tx_count": tx_count,
-        "wallet_age_days": wallet_age_days
-    }
+    if balance is None:
+        # Semua fallback gagal
+        return {"status": "0", "message": API_REJECTED}
+
+    # 2) Dapatkan umur & kiraan transaksi (anggaran) dari Ripple Data API (public)
+    wallet_age_days = 0.0
+    tx_count = 0
+
+    meta = _http_get_json(f"https://data.ripple.com/v2/accounts/{safe_addr}")
+    if meta and not meta.get("error"):
+        inc = meta.get("inception")
+        if inc:
+            try:
+                secs = int(inc)  # API lazimnya bagi epoch seconds
+                wallet_age_days = max(0.0, (time.time() - secs) / 86400.0)
+            except Exception:
+                pass
+
+    tx_meta = _http_get_json(f"https://data.ripple.com/v2/accounts/{safe_addr}/transactions?limit=1")
+    if tx_meta and not tx_meta.get("error"):
+        try:
+            tx_count = int(tx_meta.get("count") or 0)
+        except Exception:
+            tx_count = 0
+
+    # 3) (Optional) 5 transaksi terakhir untuk UI
+    last5tx = []
+    txs = _http_get_json(f"https://data.ripple.com/v2/accounts/{safe_addr}/transactions?result=tesSUCCESS&limit=5")
+    if txs and not txs.get("error"):
+        for item in (txs.get("transactions") or [])[:5]:
+            tx = item.get("tx") or {}
+            h = tx.get("hash") or item.get("hash") or ""
+            t = item.get("date")
+            if isinstance(t, (int, float)):
+                t = time.strftime("%Y-%m-%d %H:%M", time.gmtime(t))
+            frm = tx.get("Account") or "-"
+            to = tx.get("Destination") or "-"
+            val = tx.get("Amount")
+            if isinstance(val, str) and val.isdigit():  # drops -> XRP
+                try:
+                    val = f"{(float(val)/1_000_000.0):.6f} XRP"
+                except Exception:
+                    pass
+            last5tx.append({"hash": h, "time": t, "from": frm, "to": to, "value": val or "-"})
+
+    return _normalize_result(
+        address, "XRP",
+        balance=balance,
+        tx_count=tx_count,
+        wallet_age_days=wallet_age_days,
+        last5tx=last5tx
+    )
 
 # ---------- SOL ----------
 def fetch_solana(address: str) -> Dict[str, Any]:
