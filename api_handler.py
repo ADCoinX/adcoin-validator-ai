@@ -14,7 +14,7 @@ def get_wallet_data(address):
     try:
         safe_address = sanitize_address(address)
         if not safe_address:
-            return default_result(address, "Unknown", "❌ Invalid wallet format")
+            raise ValueError("Invalid wallet format")
 
         if safe_address.startswith("0x") and len(safe_address) == 42:
             return fetch_eth_data(safe_address)
@@ -31,11 +31,11 @@ def get_wallet_data(address):
         elif safe_address.lower().startswith("0x") and "base" in safe_address.lower():
             return fetch_base_data(safe_address)
         else:
-            return default_result(address, "Unknown", "❌ Invalid wallet format")
-    except requests.exceptions.RequestException as re:
-        return default_result(address, "Unknown", f"❌ Error: {str(re)}")
+            raise ValueError("Invalid wallet format")
     except ValueError as ve:
         return {"status": "0", "message": "NOTOK", "result": str(ve)}
+    except requests.exceptions.RequestException as re:
+        return default_result(address, "Unknown", f"❌ Error: {str(re)}")
     except Exception as e:
         return default_result(address, "Unknown", f"❌ Error: {str(e)}")
 
@@ -81,7 +81,6 @@ def fetch_eth_data(address):
             "tx_count": tx_count,
             "last5tx": tx_list
         }
-
     except requests.exceptions.RequestException as e:
         print(f"[Ethplorer Failed] {e}")
         try:
@@ -108,10 +107,10 @@ def fetch_eth_data(address):
         except requests.exceptions.RequestException as e:
             print(f"[Blockscout Failed] {e}")
             try:
-                # API 3: OpenChain
-                url = f"https://api.openchain.xyz/address/{address}"
+                # API 3: Alchemy (public endpoint)
+                url = f"https://eth-mainnet.g.alchemy.com/v2/demo/address/{address}/balance"
                 response = requests.get(url, timeout=10).json()
-                balance = float(response.get("balance", 0))
+                balance = int(response.get("result", 0)) / 1e18
                 tx_count = response.get("transaction_count", 0)
                 score, reason = calculate_risk_score({
                     "balance": balance,
@@ -129,7 +128,7 @@ def fetch_eth_data(address):
                     "last5tx": []
                 }
             except requests.exceptions.RequestException as e:
-                print(f"[OpenChain Failed] {e}")
+                print(f"[Alchemy Failed] {e}")
                 return default_result(address, "Ethereum", API_REJECTED_MSG)
 
 def fetch_tron_data(address):
@@ -180,11 +179,11 @@ def fetch_tron_data(address):
         except requests.exceptions.RequestException as e:
             print(f"[Trongrid Failed] {e}")
             try:
-                # API 3: Shasta (testnet public)
-                url = f"https://api.shasta.trongrid.io/v1/accounts/{address}"
+                # API 3: Tron API
+                url = f"https://api.tronapi.com/api/v1/account/{address}"
                 response = requests.get(url, timeout=10).json()
-                balance = int(response["data"][0].get("balance", 0)) / 1e6
-                tx_count = len(response.get("data", []))
+                balance = int(response.get("balance", 0)) / 1e6
+                tx_count = response.get("tx_count", 0)
                 score, reason = calculate_risk_score({
                     "balance": balance,
                     "tx_count": tx_count,
@@ -201,7 +200,7 @@ def fetch_tron_data(address):
                     "last5tx": []
                 }
             except requests.exceptions.RequestException as e:
-                print(f"[Shasta Failed] {e}")
+                print(f"[Tron API Failed] {e}")
                 return default_result(address, "TRON", API_REJECTED_MSG)
 
 def fetch_btc_data(address):
@@ -396,7 +395,7 @@ def fetch_sol_data(address):
         except requests.exceptions.RequestException as e:
             print(f"[Solana Explorer Failed] {e}")
             try:
-                # API 3: QuickNode (public endpoint)
+                # API 3: QuickNode
                 url = f"https://public-api.quicknode.com/solana/mainnet/address/{address}/balance"
                 response = requests.get(url, timeout=10).json()
                 balance = float(response.get("balance", 0)) / 1e9
@@ -542,10 +541,10 @@ def fetch_base_data(address):
         except requests.exceptions.RequestException as e:
             print(f"[Basescan Failed] {e}")
             try:
-                # API 3: OpenChain
-                url = f"https://api.openchain.xyz/address/{address}"
+                # API 3: Alchemy
+                url = f"https://base-mainnet.g.alchemy.com/v2/demo/address/{address}/balance"
                 response = requests.get(url, timeout=10).json()
-                balance = float(response.get("balance", 0))
+                balance = int(response.get("result", 0)) / 1e18
                 tx_count = response.get("transaction_count", 0)
                 score, reason = calculate_risk_score({
                     "balance": balance,
@@ -563,5 +562,5 @@ def fetch_base_data(address):
                     "last5tx": []
                 }
             except requests.exceptions.RequestException as e:
-                print(f"[OpenChain Failed] {e}")
+                print(f"[Alchemy Failed] {e}")
                 return default_result(address, "Base", API_REJECTED_MSG)
