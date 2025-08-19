@@ -45,7 +45,6 @@ ADC CryptoGuard will integrate with the XRPL Mainnet and Sidechain using the fol
   - Bitcoin → BlockCypher API
   - Solana → Helius API
   - XRP → XRPSCAN / XRP Explorer (r-addr support)
-- **Logging**: Google Sheets logging via Service Account
 - **ISO 20022**: XML export via `iso_export.py`
 
 ---
