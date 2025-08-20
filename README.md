@@ -24,47 +24,59 @@
 
 ## 🛡️ XRPL Integration
 
-ADC CryptoGuard will integrate with the XRPL Mainnet and Sidechain using the following:
+ADC CryptoGuard integrates with the XRPL Mainnet and Sidechain to provide:  
 
-- Validate XRPL wallet addresses (r…)
-- Detect scam interaction history
-- AI-powered risk score for XRPL wallets
-- ISO 20022 XML export of validated results
-- Planned: Enable XRP balance checks and validator lookup via XRPSCAN API
+- Validation of XRPL wallet addresses (`r…`)  
+- Scam interaction detection  
+- AI-powered risk scoring for XRPL wallets  
+- ISO 20022 XML export of validated results  
+- Planned: XRP balance check & validator lookup via XRPSCAN API  
 
 ---
 
 ## 🔧 Tech Stack
 
-- **Frontend**: HTML + CSS (templates/index.html)
-- **Backend**: Python (Flask)
-- **AI Module**: `ai_risk.py` for dynamic score calculation
+- **Frontend**: HTML + CSS (`templates/index.html`)  
+- **Backend**: Python (Flask)  
+- **AI Module**: `ai_risk.py` → calculates dynamic wallet risk scores  
 - **Blockchain Integration**:
-  - Ethereum → Etherscan API
-  - TRON → TronGrid API
-  - Bitcoin → BlockCypher API
-  - Solana → Helius API
-  - XRP → XRPSCAN / XRP Explorer (r-addr support)
-- **ISO 20022**: XML export via `iso_export.py`
+  - Ethereum → Etherscan API  
+  - TRON → TronGrid API  
+  - Bitcoin → BlockCypher API  
+  - Solana → Helius API  
+  - XRP → XRPSCAN / XRP Explorer  
+- **ISO 20022**: XML export via `iso_export.py`  
+
+---
+
+## 🧠 AI Risk Module
+
+The **AI Risk Engine** (`ai_risk.py`) is a lightweight module that:  
+
+- Analyzes wallet transaction history  
+- Flags suspicious or scam-related activity  
+- Generates a **dynamic risk score** (0–100)  
+- Runs locally (no sensitive API keys stored)  
+- Uses fallback public APIs for redundancy  
 
 ---
 
 ## 🔐 Security & Infosec Compliance
+
 We prioritize security, transparency, and code quality across all ADCX Lab projects.  
-This repository is continuously monitored and validated against Infosec best practices.
 
 ### 📊 Code Quality & Security Scans
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
 
 ### 🛡️ Security Practices
-- No sensitive API keys or credentials stored in this repo.  
-- All blockchain data fetched from **public APIs only**.  
-- Regular scans via **SonarQube / SonarCloud**.  
-- Dependencies monitored via **Dependabot**.  
-- Public transparency for Infosec reviewers.  
+- No sensitive API keys or credentials stored in this repo  
+- All blockchain data fetched from **public APIs only**  
+- Regular scans via **SonarQube / SonarCloud**  
+- Dependencies monitored via **Dependabot**  
+- Public transparency for Infosec reviewers  
 
 ### 📂 Compliance Evidence
 - ISO 20022 XML Export (`iso_export.py`)  
@@ -72,53 +84,26 @@ This repository is continuously monitored and validated against Infosec best pra
 
 ---
 
-### 🛡 Security Practices
-- No sensitive API keys or credentials stored in this repo.  
-- All blockchain data fetched from **public APIs only**.  
-- Regular scans via **SonarQube / SonarCloud**.  
-- Dependencies monitored via **Dependabot**.  
-- Public transparency for Infosec reviewers.  
-
-### 📂 Compliance Evidence
-- ISO 20022 XML Export (`iso_export.py`)  
-- Continuous scanning results (see badges above).  
-
----
-
 > ⚠️ *Disclaimer*: This project is for **educational and security research purposes**.  
-> Final decisions and risk assessments remain the responsibility of the user.
-
-## 🖼️ NFT Integration
-
-We have also launched an official NFT collection as part of ADCoin ecosystem:
-
-🔗 [View our NFT on OpenSea](https://opensea.io/0x251476783eb424412eec3d91dfe4892878b2dd45)
-
-Planned NFT utility:
-
-- Wallet identity verification
-- Early supporter benefits
-- Validator contributor badge
-- Token-gated access to tools and reports
+> Final decisions and risk assessments remain the responsibility of the user.  
 
 ---
 
 ## 🎯 Branding & Logo Usage
 
 This project uses the official **ADCoin Validator** logo located at:  
-📁 `static/logo.png`
+📁 `static/logo.png`  
 
 ⚠️ **Do not remove, replace, or reuse this logo.**  
-All branding is under ADCX Lab’s copyright.
+All branding is under ADCX Lab’s copyright.  
 
-Contact for permission:  
-📩 **admin@autodigitalcoin.com**
+📩 Contact: admin@autodigitalcoin.com  
 
 ---
 
 ## 📄 License
 
-This project is licensed under:
+This project is licensed under:  
 
 **Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International**  
 🔗 [https://creativecommons.org/licenses/by-nc-nd/4.0](https://creativecommons.org/licenses/by-nc-nd/4.0)
