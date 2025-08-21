@@ -112,10 +112,11 @@ ADCX Lab applies industry best practices in software assurance and compliance.
 
 - **ISO 20022**: Structured XML export available for audit teams (self-compliant; certification in progress)  
 - **Transparency**: Open-source validation, code scans publicly visible  
-- **Infosec Evidence**:  
+- **Infosec Evidence**:
+  -[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
   - [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
   - [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
-
+ 
 ---
 
 ## ⚠️ Disclaimer
