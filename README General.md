@@ -37,11 +37,6 @@ ADC CryptoGuard is seeking support to scale multi-chain features:
 - Applying for **XRPL Grants**: To enhance XRPL validation and add XRP balance checks.  
 - Applying for **Hedera Launch Program (via Thrive Protocol)**: To integrate Hedera HTS token security.  
 
-**Reasons for Dual Grants (For Reviewers)**:  
-1. **Scalable Security for Emerging Ecosystems**: By integrating XRPL and Hedera, ADC CryptoGuard addresses scam risks in high-growth networks like Southeast Asia, where crypto fraud exceeds $20B annually (per Chainalysis reports), enabling broader user protection through AI-driven validation.  
-2. **Compliance-Ready Innovation**: The tool's ISO 20022 XML exports facilitate regulatory audits, aligning with enterprise needs on Hedera and XRPL, while funding will accelerate certifications like GDPR/PDPA for global adoption.  
-3. **Multi-Chain Utility Without Compromise**: Seeking dual grants ensures focused enhancements (e.g., XRPL balance checks, Hedera HTS integrations) while maintaining a unified, open-source framework, maximizing impact on Web3 safety without ecosystem silos.  
-
 ---
 
 ## 🔎 Chain-Specific Modules
@@ -76,9 +71,18 @@ ADC CryptoGuard is seeking support to scale multi-chain features:
 - `/static/`: Assets like logo.png.  
 
 > **Note (Grant-Dependent Expansion):**  
-> Some directories (e.g., `/core.keep`,/integrations/xrpl`, `/integrations/hedera`) are currently placeholders to prevent project crash during deployment.  
-> Full modules will be populated once funding is secured, ensuring smooth integration without breaking the live validator.
-> 🚀 Repository will expand automatically once grant funding is approved.   
+> Some directories (e.g., `/core.keep`, `/integrations/xrpl`, `/integrations/hedera`) are currently placeholders to prevent project crash during deployment.  
+> Full modules will be populated once funding is secured, ensuring smooth integration without breaking the live validator.  
+
+---
+
+## 👤 Development Model
+
+ADC CryptoGuard Validator is currently built and maintained by a **solo builder** under ADCX Lab.  
+- Ensures **fast iteration** and **lean development**.  
+- Transparent, open-source contributions welcome.  
+- Funding support (via XRPL / Hedera grants) will allow expansion into a **small dedicated security team** for scaling multi-chain modules.  
+
 ---
 
 ## ⚙️ Technical Architecture
@@ -87,7 +91,31 @@ ADC CryptoGuard is seeking support to scale multi-chain features:
 - **Backend**: Python Flask  
 - **AI Risk Engine**: Local scoring module (`ai_risk.py`) with 0–100 scale  
 - **Blockchain Data**: Fetched from **public fallback APIs** only (no private key usage)  
-- **ISO 20022 Compliance**: Structured XML export (`iso_export.py`)  
+- **ISO 20022 Compliance**: Structured XML export (`iso_export.py`)
+
+---
+
+## 🧩 System Design (High-Level + Flow)
+
+**High-Level Architecture (Compressed)**  
+User/Reviewer (Web UI or cURL) → Flask API (app.py) → Address Router (detect chain) →  
+• XRPL Public API / Explorer  
+• Hedera Mirror Node API  
+• Roadmap: ETH / BTC / TRON / SOL  
+→ AI Risk Engine (ai_risk.py) → ISO 20022 Export (iso_export.py) →  
+Outputs: JSON (risk_score, findings) + ISO 20022 XML + Frontend Templates (HTML/CSS)  
+Security Layer: SonarCloud (Quality Gate) + Dependabot (Dependencies)  
+
+**Request Flow (Sequence – Simplified)**  
+1. User submits POST /validate {"chain":"xrpl","address":"r..."} or {"chain":"hedera","address":"0.0.x"}  
+2. Flask API routes to Address Router → detect chain type  
+3. Router fetches snapshot:  
+   • XRPL → Public API  
+   • Hedera → Mirror Node  
+   • Other chains → Roadmap endpoints  
+4. Router sends snapshot → AI Risk Engine → calculate risk_score (0–100)  
+5. API optionally calls ISO 20022 Export → build XML  
+6. API returns response → JSON + (optional) ISO XML link  
 
 ---
 
@@ -112,12 +140,11 @@ ADCX Lab applies industry best practices in software assurance and compliance.
 
 - **ISO 20022**: Structured XML export available for audit teams (self-compliant; certification in progress)  
 - **Transparency**: Open-source validation, code scans publicly visible  
-- **Infosec Evidence**:
-  
-  - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)
+- **Infosec Evidence**:  
+  - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
   - [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
   - [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
- 
+
 ---
 
 ## ⚠️ Disclaimer
@@ -126,8 +153,6 @@ This system is intended for **educational, research, and compliance validation p
 ADCX Lab does not provide financial, investment, or legal guarantees.  
 Final responsibility for risk assessment remains with the user or institution.  
 
----
-🤝 Open for collaboration with ecosystem partners, auditors, and enterprise security teams.  
 ---
 
 ## 📞 Contact Information
