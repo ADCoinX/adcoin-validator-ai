@@ -31,11 +31,29 @@ The framework is designed to support **regulatory compliance (ISO 20022)** while
 
 ---
 
-## 📈 Funding & Ecosystem Alignment
+## 📈 Funding & Ecosystem Alignment  
 
 ADC CryptoGuard is seeking support to scale multi-chain features:  
 - Applying for **XRPL Grants**: To enhance XRPL validation and add XRP balance checks.  
 - Applying for **Hedera Launch Program (via Thrive Protocol)**: To integrate Hedera HTS token security.  
+
+**Reasons for Dual Grants (For Reviewers):**  
+1. **Scalable Security for Emerging Ecosystems**: By integrating XRPL and Hedera, ADC CryptoGuard addresses scam risks in high-growth networks like Southeast Asia, where crypto fraud exceeds $20B annually (per Chainalysis reports), enabling broader user protection through AI-driven validation.  
+2. **Compliance-Ready Innovation**: The tool's ISO 20022 XML exports facilitate regulatory audits, aligning with enterprise needs on Hedera and XRPL, while funding will accelerate certifications like GDPR/PDPA for global adoption.  
+3. **Multi-Chain Utility Without Compromise**: Seeking dual grants ensures focused enhancements (e.g., XRPL balance checks, Hedera HTS integrations) while maintaining a unified, open-source framework, maximizing impact on Web3 safety without ecosystem silos.  
+
+---
+
+### 🔎 Note for Reviewers  
+
+This repository is developed by a **solo builder** under ADCX Lab.  
+Separate README versions are prepared for **XRPL Grants** and **Hedera Thrive/Launch Program** to reflect each ecosystem’s priorities.  
+
+While the **core engine** is shared, the focus and deliverables differ:  
+- **XRPL** → wallet validation, XRP balance, community fraud protection.  
+- **Hedera** → HTS token security, enterprise compliance, ISO 20022 integration.  
+
+This ensures alignment without duplicating efforts across ecosystems.  
 
 ---
 
