@@ -88,6 +88,53 @@ User/Reviewer → Flask API (`app.py`) → Address Router (detect XRPL `r...`) �
 - Local processing for user privacy
 
 ---
+## 🔐 Funding Disclosure & Budget (XRPL Grant)
+
+This repository contains a modular validator with XRPL-specific deliverables.  
+I am a **solo builder** and the requested budget is **ring-fenced for XRPL only**.  
+Shared modules are maintained as open-source, but **XRPL funds the XRPL-specific portions inside them**.
+
+---
+
+### 🟦 Core (XRPL-funded portions only)
+These components are foundational, but XRPL grant covers **only XRPL-related logic**:
+- **Validator Core (Backend)** (`app.py`) → XRPL wallet parsing & adapter logic  
+- **AI Risk Engine** (`ai_risk.py`) → XRPL heuristics & anomaly scoring (base AI is neutral)  
+- **ISO 20022 Exporter** (`iso_export.py`) → XRPL export profile (base module is neutral)  
+- **API Handler + Fallback** (`api_handler.py`) → XRPL public API integration  
+- **Frontend (Web/Mobile)** (`index.html`, `style.css`) → XRPL wallet validation UI  
+
+---
+
+### 🟨 XRPL-Specific (Funded Scope)
+1. XRPL Wallet validation (addresses `r...`)  
+2. Balance & activity snapshot via XRPL API  
+3. XRPL anomaly rules & scam heuristics  
+4. ISO 20022 (XRPL profile) export  
+5. Reviewer Dashboard (XRPL-specific UI + reports)  
+6. **Mobile (iOS/Android)**: lightweight XRPL wallet validation UI  
+
+---
+
+### ⚖️ Justification
+- **No double funding**: Hedera-specific work is separate (`integrations/hedera`).  
+- **Core modules**: XRPL funds only XRPL-related features; neutral/cross-chain code is not billed.  
+- Transparency: public repo, open issues, SonarCloud quality checks.  
+
+---
+
+### 📅 Timeline (per XRPL grant)
+- **Week 1–2**: Parser + wallet validation rules  
+- **Week 3–4**: Balance snapshot + anomaly heuristics  
+- **Week 5–6**: ISO 20022 XRPL profile export  
+- **Week 7–8**: Reviewer dashboard + stabilization  
+- **Mobile (iOS/Android)**: lightweight wallet validation UI added in **Week 3**  
+
+---
+
+### 📧 Contact
+For any clarification on scope or budgeting: **admin@autodigitalcoin.com**
+---
 
 ## ⚠️ Disclaimer
 For **educational, research, and compliance validation** purposes only. ADCX Lab does not provide financial, investment, or legal guarantees. Final responsibility for risk decisions remains with the user or institution.
