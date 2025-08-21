@@ -164,6 +164,55 @@ ADCX Lab applies industry best practices in software assurance and compliance.
   - [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
 
 ---
+## 🔐 Funding Disclosure & Non-Overlap (Important for Reviewers)
+
+This repository contains a unified, modular validator with chain-specific deliverables. I am a **solo builder**, and I am applying to **two ecosystem programs** with **clearly separated scopes** to avoid any double funding.
+
+### What each grant funds (non-overlapping)
+- **XRPL Grant — Scope**
+  1) XRPL wallet validation enhancements (address `r...`, quality checks)
+  2) XRP balance & activity snapshot via public XRPL endpoints
+  3) XRPL-specific anomaly rules & scam heuristics
+  4) Export to ISO 20022 (XRPL profile) + lightweight reviewer dashboard
+  5) Mobile (iOS/Android) — XRPL wallet checker (balances + scam heuristics)  
+  **Milestones**: M1 Parser & heuristics · M2 Balance snapshot · M3 ISO export (XRPL) · M4 Reviewer dashboard (XRPL) · M5 Mobile XRPL app
+
+- **Hedera Thrive/Launch — Scope**
+  1) Hedera account validation (account `0.0.x`)
+  2) Mirror Node integration (accounts/transactions)
+  3) HTS token safety checks (selected tokens, basic policy rules)
+  4) Export to ISO 20022 (Hedera profile)
+  5) Mobile (iOS/Android) — Hedera wallet checker (HTS token safety + account lookup)  
+  **Milestones**: H1 Mirror Node ingestion · H2 HTS checks · H3 ISO export (Hedera) · H4 Compliance report (Hedera) · H5 Mobile Hedera app
+
+> **No shared deliverable is billed twice.** Shared core utilities (e.g., `ai_risk.py`, `iso_export.py`) are funded by **neither grant**; they are open-source foundation work maintained at my own cost unless a program explicitly requests enhancements unique to that chain.
+
+### If both grants are approved
+- I will **ring-fence budgets and branches**:
+  - `integrations/xrpl` ← XRPL-funded tasks only  
+  - `integrations/hedera` ← Hedera-funded tasks only
+- Separate progress tracking (issues, PR labels, milestone boards) per ecosystem.
+- Shared work (refactors, infra, docs) remains **unfunded** or will be **explicitly attributed** to a single program if requested.
+
+### If only one grant is approved
+- I will **deliver that chain’s milestones in full**.
+- The other chain remains active but limited to unfunded, best-effort maintenance until separate funding is confirmed.
+
+### Capacity & resourcing (solo builder)
+- Current status: solo builder with open-source transparency (SonarCloud, Dependabot).
+- Hiring plan (grant-dependent): 1) Blockchain dev (validator/API) → 2) Frontend or Mobile (UI) → 3) AI/Security.
+- Risk controls: public API only (no keys), local processing, fallback endpoints, ISO 20022 export profiles per chain.
+
+### Timeline (high-level, per approved grant)
+- Week 1–2: finalize chain adapters + endpoint fallbacks
+- Week 3–4: implement chain-specific heuristics + tests
+- Week 3–5: develop Mobile (iOS/Android) app tailored per chain
+- Week 5–6: ISO 20022 export profile + reviewer view
+- Week 7–8: stabilization, docs, and compliance evidence
+
+### Contact
+For any clarification on scope separation or budgeting, please reach out: **admin@autodigitalcoin.com**
+---
 
 ## ⚠️ Disclaimer
 
