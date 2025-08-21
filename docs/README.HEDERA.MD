@@ -90,7 +90,54 @@ User/Reviewer → Flask API (`app.py`) → Address Router (detect Hedera `0.0.x`
 - Local processing to preserve user privacy
 
 ---
+## 🔐 Funding Disclosure & Budget (Hedera Grant)
 
+This repository contains a modular validator with **Hedera-specific deliverables**.  
+I am a **solo builder** and the requested budget is **ring-fenced for Hedera only**.  
+Shared modules are maintained as open-source, but **Hedera funds the Hedera-specific portions inside them**.
+
+---
+
+### 🟦 Core (Hedera-funded portions only)
+These components are foundational, but Hedera grant covers **only Hedera-related logic**:
+- **Validator Core (Backend)** (`app.py`) → Hedera account parsing & adapter logic  
+- **AI Risk Engine** (`ai_risk.py`) → Hedera heuristics & anomaly scoring (base AI is neutral)  
+- **ISO 20022 Exporter** (`iso_export.py`) → Hedera export profile (base module is neutral)  
+- **API Handler + Fallback** (`api_handler.py`) → Hedera Mirror Node integration  
+- **Frontend (Web/Mobile)** (`index.html`, `style.css`) → Hedera account validation UI  
+
+---
+
+### 🟨 Hedera-Specific (Funded Scope)
+1. Hedera account validation (`0.0.x` addresses)  
+2. Account & transaction snapshot via Mirror Node API  
+3. HTS token safety checks (policy & anomaly rules)  
+4. ISO 20022 (Hedera profile) export  
+5. Compliance Dashboard (Hedera-specific UI + reports)  
+6. **Mobile (iOS/Android)**: lightweight Hedera account validation UI  
+
+---
+
+### ⚖️ Justification
+- **No double funding**: XRPL-specific work is separate (`integrations/xrpl`).  
+- **Core modules**: Hedera funds only Hedera-related features; neutral/cross-chain code is not billed.  
+- Transparency: public repo, open issues, SonarCloud quality checks.  
+
+---
+
+### 📅 Timeline (per Hedera grant)
+- **Week 1–2**: Parser + account validation rules  
+- **Week 3–4**: Mirror Node ingestion + HTS safety checks  
+- **Week 5–6**: ISO 20022 Hedera profile export  
+- **Week 7–8**: Compliance dashboard + stabilization  
+- **Mobile (iOS/Android)**: lightweight Hedera validation UI added in **Week 3**  
+
+---
+
+### 📧 Contact
+For any clarification on scope or budgeting: **admin@autodigitalcoin.com**
+
+---
 ## ⚠️ Disclaimer
 For **educational, research, and compliance validation** purposes only. ADCX Lab does not provide financial, investment, or legal guarantees. Final responsibility for risk decisions remains with the user or institution.
 
