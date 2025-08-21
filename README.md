@@ -57,9 +57,13 @@ This ensures alignment without duplicating efforts across ecosystems.
 
 
 ---
-## Funding Disclosures
-- [XRPL Scope & Budget](docs/README.XRPL.md)
-- [Hedera Scope & Budget](docs/README.HEDERA.md)
+## 📑 Funding Disclosures
+
+This project supports **multi-chain expansion**, but each grant is strictly ring-fenced.  
+Please refer to the dedicated funding scope:
+
+- [XRPL Grant Scope & Budget](docs/README.XRPL.MD)  
+- [Hedera Grant Scope & Budget](docs/README.HEDERA.MD)  
 ---
 
 ## 🔎 Chain-Specific Modules
