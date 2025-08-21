@@ -55,6 +55,11 @@ While the **core engine** is shared, the focus and deliverables differ:
 
 This ensures alignment without duplicating efforts across ecosystems.  
 
+
+---
+## Funding Disclosures
+- [XRPL Scope & Budget](docs/README.XRPL.md)
+- [Hedera Scope & Budget](docs/README.HEDERA.md)
 ---
 
 ## 🔎 Chain-Specific Modules
