@@ -3,7 +3,7 @@
 [![Website](https://img.shields.io/badge/Website-AutoDigitalCoin.com-blue?logo=google-chrome)](https://autodigitalcoin.com)  
 [![Live Validator](https://img.shields.io/badge/Validator-LIVE-green?logo=vercel)](https://adcoin-validator-ai.onrender.com)  
 ![ISO 20022](https://img.shields.io/badge/ISO%2020022-Compliant-blueviolet)  
-![License](https://img.shields.io/badge/License-BY--NC--ND%204.0-lightgrey)  
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Repo Size](https://img.shields.io/github/repo-size/ADCoinX/adcoin-validator-ai)  
 ![Last Commit](https://img.shields.io/github/last-commit/ADCoinX/adcoin-validator-ai)  
 ![Issues](https://img.shields.io/github/issues/ADCoinX/adcoin-validator-ai)  
@@ -21,7 +21,7 @@
 It validates XRPL addresses, detects anomalies or scam activity, and generates **ISO 20022-compliant audit exports**.  
 
 👤 **Development Model:**  
-Built and maintained by a **solo builder (ADCX Lab)** with lean execution, fast iteration, and open transparency. Funding will enable expansion into a small dedicated team (blockchain dev + frontend/mobile + AI/security).  
+Built and maintained by ADCX Lab with lean execution, fast iteration, and open transparency. Funding will enable expansion into a small dedicated team (blockchain dev + frontend/mobile + AI/security).  
 
 **Objectives:**  
 - Protect XRPL users from scam & high-risk wallets  
@@ -231,13 +231,14 @@ XRPL Grant funds will be applied **only to XRPL deliverables**, including:
 
 This tool is for **educational, research, and compliance validation** only.  
 ADCX Lab does not provide financial, investment, or legal guarantees.  
+Code is open-sourced under MIT License; provided as-is with no warranties.
 
 ---
 
 ## 📞 Contact  
 
 👤 **Muhammad Yusri Adib**  
-Founder – ADCX Lab (Solo Builder)  
+Founder – ADCX Lab
 
 📩 Email: admin@autodigitalcoin.com  
 💬 Telegram: [@ADCoinhelpline](https://t.me/ADCoinhelpline)  
