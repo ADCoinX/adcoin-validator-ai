@@ -185,15 +185,31 @@ We welcome contributions from the community to strengthen **wallet safety on XRP
 
 ---
 
-## 💬 Founder’s Note  
+## Team & Governance
 
-This project is built by me as a **solo builder** from Malaysia under **ADCX Lab**.  
-I started ADC CryptoGuard because I saw too many people around me – especially in Southeast Asia – losing money to scams.  
+**Core Team**
+- **Muhammad Yusri Adib — Founder / CTO**  
+  Focus: architecture, AI risk engine, XRPL integrations, ISO 20022 exporter.  
+  Commitment: Full-time.  
+  [LinkedIn](http://linkedin.com/in/yusri-adib-455aa8b7)
 
-I am applying for this grant because **without support, it will be very hard for me to continue scaling this work alone**.  
-I don’t have a team or large funding – just commitment, faith, and the hope that this tool can make Web3 safer for everyone.  
+- **Muhammad Mustafa, CPA, CFE, CMA, CIA — Co-Founder / Finance & Compliance Lead**  
+  Focus: governance, audit & reporting, budget control, regulatory alignment.  
+  Commitment: Full-time.  
+  [LinkedIn](http://linkedin.com/in/muhammad-mustafa-abdulmanaf)
 
-🙏 Any support means the world to me, and I will dedicate myself fully to delivering impact for the XRPL community.  
+**Governance & Quality**
+- `main` branch is protected: peer reviews + CI checks required before merge.  
+- Secrets managed via GitHub Encrypted Secrets.  
+- No user data stored; validator is privacy-first.  
+- Vulnerability reporting per `SECURITY.md` — 72-hour SLA for high-severity issues.
+
+**Grant Use (XRPL-specific)**
+XRPL Grant funds will be applied **only to XRPL deliverables**, including:  
+1. Wallet validation heuristics for XRPL.  
+2. XRPL balance & transaction anomaly detection.  
+3. ISO 20022 schema tailored for XRPL.  
+4. QA, testing, and documentation for XRPL module.
 
 ---
 
