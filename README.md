@@ -172,6 +172,32 @@ Even in the demo stage, we evaluate potential risks and mitigation paths.
 - **Mitigation plan**: Rate limiting, SSL cert, schema validation, multi-API redundancy, DB migration
 
 ---
+
+## 🛡️ Security Roadmap (3–6 Months)
+
+To strengthen CryptoGuard beyond demo stage, we are implementing a phased roadmap:
+
+### 📅 Next 3 Months
+- 🚧 Rate limiting on API endpoints (Flask/Gunicorn + Cloudflare)
+- 🚧 Input sanitization & schema validation (JSON + ISO 20022 XML)
+- 🚧 Multi-API redundancy (Etherscan + fallback explorers)
+- 🚧 Basic monitoring & alerting (UptimeRobot / Prometheus)
+- 🚧 Domain verification & SSL enforcement (official ADCX domain)
+
+### 📅 3–6 Months
+- 🔜 Migration from Google Sheets → secure database with authentication
+- 🔜 Centralized logging with anomaly alerts
+- 🔜 DDoS protection (Cloudflare / AWS Shield integration)
+- 🔜 Governance for community-driven blacklist (moderated entries)
+- 🔜 Security audit (internal + external review of core modules)
+
+### 🎯 Long-Term Vision
+- Enterprise-ready deployment with compliance certifications
+- Real-time monitoring dashboard for validators
+- Multi-chain threat intelligence integration (RWA, CBDCs, ISO/TC 307 alignment)
+
+---
+
 ## 🚀 Project Status – CryptoGuard (XRPL)
 
 **Live Demo:** https://adcoin-validator-ai.onrender.com  
