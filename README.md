@@ -309,12 +309,16 @@ ADCX Lab does not provide financial, investment, or legal guarantees.
 Code is open-sourced under MIT License; provided as-is with no warranties.
 
 ---
+## 📜 License
+This project is open-sourced under the MIT License.  
+See the [LICENSE](./LICENSE) file for details.
+
+---
 
 ## 📞 Contact  
 
 👤 **Muhammad Yusri Adib**  
 Founder – ADCX Lab
-
 📩 Email: admin@autodigitalcoin.com  
 💬 Telegram: [@ADCoinhelpline](https://t.me/ADCoinhelpline)  
 🐦 Twitter: [@AdCoinMy](https://twitter.com/AdCoinMy)  
