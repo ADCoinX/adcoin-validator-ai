@@ -147,6 +147,55 @@ curl -X POST https://<backend-url>/iso/export \
 ```
 
 ---
+## 🔐 Security & Threat Model
+
+At ADCX Lab, safety isn’t an afterthought — it’s built in from day one.  
+Even in the demo stage, we evaluate potential risks and mitigation paths.
+
+### 📊 Threat Matrix – CryptoGuard (XRPL)
+
+| Threat / Attack Vector        | Likelihood | Impact | Notes & Mitigation |
+|-------------------------------|------------|--------|---------------------|
+| **DDoS / API Spam**           | High       | Medium | Rate limiting, Cloudflare, fallback nodes |
+| **API Dependency Abuse**      | High       | Medium | Multiple API keys, caching, fallback APIs |
+| **Phishing / Clone Website**  | Medium     | High   | Official domain, SSL cert, verified links |
+| **XSS / Input Injection**     | Medium     | Medium | Strict input validation & sanitization |
+| **AI Risk Engine Bypass**     | Low/Med    | Medium | Hybrid rules + AI, manual blacklist |
+| **Blacklist Poisoning**       | Low/Med    | Low/Med| Moderated entries, hash verification |
+| **ISO 20022 Export Injection**| Low        | Medium | XML schema validation, sanitize input |
+| **Google Sheets Log Abuse**   | Medium     | Low/Med| Env-secured keys, migrate to DB w/ auth |
+
+### ⚖️ Summary
+- Highest risk (short-term): **DDoS / API spam** and **Phishing clones**  
+- Medium risk: **XSS, API dependency abuse, AI bypass**  
+- Lower risk: **ISO export injection, log poisoning**  
+- **Mitigation plan**: Rate limiting, SSL cert, schema validation, multi-API redundancy, DB migration
+
+---
+## 🚀 Project Status – CryptoGuard (XRPL)
+
+**Live Demo:** https://adcoin-validator-ai.onrender.com  
+**Repository:** https://github.com/ADCoinX/adcoin-validator-ai  
+
+### ✅ Completed
+- Wallet validation via public APIs (XRPL Explorer, Etherscan, BlockCypher)
+- AI risk scoring engine (hybrid rule-based + scoring weights)
+- ISO 20022 XML export module
+- Google Sheets logging for traction tracking
+- Public demo deployment (Render.com)
+
+### 🚧 In Progress
+- Improve input sanitization for XML export
+- API fallback & caching to handle rate-limit issues
+- Basic monitoring for uptime / error logging
+
+### 🔜 Planned
+- Rate limiting & DDoS protection (Cloudflare / API Gateway)
+- Domain verification + anti-phishing (official ADCX domain)
+- Migration from Google Sheets → secure DB (with authentication)
+- More chain integrations (multi-chain support beyond XRPL)
+
+---
 
 ## 💡 Use Cases  
 
