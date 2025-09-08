@@ -7,19 +7,19 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
     body {
-      background: linear-gradient(135deg, #20242a 0%, #2e3840 100%);
+      background: linear-gradient(135deg, #3c1a4f 0%, #ff8a00 100%);
       font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
       margin: 0;
       min-height: 100vh;
-      color: #e9eef6;
+      color: #f3e8ff;
       letter-spacing: 0.01em;
     }
     .container {
       max-width: 440px;
       margin: 40px auto 0;
-      background: rgba(34,38,44,0.98);
+      background: rgba(35,10,44,0.97);
       border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 0 rgb(73 242 194 / 14%);
+      box-shadow: 0 8px 32px rgba(44,0,44,0.24), 0 1.5px 0 rgb(255 138 0 / 14%);
       padding: 36px 32px 32px;
       position: relative;
       z-index: 2;
@@ -30,14 +30,14 @@
       margin: 0 auto 12px;
       max-width: 90px;
       border-radius: 16px;
-      box-shadow: 0 2px 18px #49f2c233;
+      box-shadow: 0 2px 18px #ff8a0033;
     }
     h1 {
       text-align: center;
       font-weight: 700;
       font-size: 2.1em;
       letter-spacing: 0.04em;
-      background: linear-gradient(90deg, #49f2c2 0%, #32cd32 100%);
+      background: linear-gradient(90deg, #ff8a00 0%, #9e1f63 60%, #6a1b9a 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 22px;
@@ -46,10 +46,10 @@
       display: flex;
       gap: 0;
       margin-bottom: 18px;
-      background: #23272f;
+      background: #471b52;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 1px 8px #49f2c233;
+      box-shadow: 0 1px 8px #6a1b9a33;
     }
     form input[type="text"] {
       flex: 1;
@@ -63,8 +63,8 @@
     }
     form button {
       padding: 0 22px;
-      background: linear-gradient(90deg, #49f2c2 0%, #32cd32 100%);
-      color: #21252a;
+      background: linear-gradient(90deg, #ff8a00 0%, #9e1f63 100%);
+      color: #fff;
       border: none;
       font-weight: 600;
       font-size: 1em;
@@ -73,7 +73,7 @@
       border-radius: 0 12px 12px 0;
     }
     form button:hover {
-      background: linear-gradient(90deg, #32cd32 0%, #49f2c2 100%);
+      background: linear-gradient(90deg, #9e1f63 0%, #ff8a00 100%);
     }
     .flash-list {
       color: #ff6b6b;
@@ -85,37 +85,37 @@
       letter-spacing: 0.01em;
     }
     .user-count {
-      color: #bfc6cc;
+      color: #f3e8ff;
       font-size: 14px;
       margin-top: 10px;
       text-align: center;
       font-weight: 500;
     }
     .result {
-      background: #23272f;
+      background: #471b52;
       border-radius: 12px;
       padding: 18px 18px 10px;
-      box-shadow: 0 2px 8px #49f2c233;
+      box-shadow: 0 2px 8px #9e1f6333;
       margin-top: 10px;
-      color: #e9eef6;
+      color: #f3e8ff;
       font-size: 1em;
     }
     .result strong {
-      color: #49f2c2;
+      color: #ff8a00;
     }
     .result a {
-      color: #49f2c2;
+      color: #ff8a00;
       text-decoration: none;
       font-weight: 600;
     }
-    .result a:hover { text-decoration: underline; }
+    .result a:hover { text-decoration: underline; color: #9e1f63; }
     .transactions {
       margin-top: 26px;
     }
     .transactions h4 {
       font-size: 1.09em;
       font-weight: 600;
-      color: #49f2c2;
+      color: #ff8a00;
       margin-bottom: 10px;
       letter-spacing: 0.02em;
     }
@@ -123,67 +123,67 @@
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      background: #23272f;
+      background: #471b52;
       color: #fff;
       font-size: 0.96em;
-      border: 1px solid #2e3840;
+      border: 1px solid #6a1b9a;
       border-radius: 9px;
       overflow: hidden;
-      box-shadow: 0 2px 8px #49f2c233;
+      box-shadow: 0 2px 8px #6a1b9a33;
     }
     .result-table th, .result-table td {
       padding: 9px 12px;
-      border-bottom: 1px solid #2e3840;
+      border-bottom: 1px solid #6a1b9a;
     }
     .result-table tr:last-child td { border-bottom: 0; }
     .result-table th {
-      background: #262a31;
-      color: #49f2c2;
+      background: #3c1a4f;
+      color: #ff8a00;
       font-weight: 500;
       font-size: 0.97em;
     }
     .result-table a {
-      color: #49f2c2 !important;
+      color: #ff8a00 !important;
       text-decoration: none;
       font-weight: 500;
     }
     .result-table a:hover {
       text-decoration: underline;
-      color: #32cd32 !important;
+      color: #9e1f63 !important;
     }
     #disclaimer {
       margin-top: 14px;
       font-size: 14px;
-      color: #bfc6cc;
+      color: #f3e8ff;
       text-align: center;
       padding: 0 8px;
     }
     #disclaimer a {
-      color: #49f2c2;
+      color: #ff8a00;
       text-decoration: none;
       font-weight: 500;
       margin-left: 6px;
     }
-    #disclaimer a:hover { text-decoration: underline; color: #32cd32; }
+    #disclaimer a:hover { text-decoration: underline; color: #9e1f63; }
     .networks {
       text-align: center;
       font-size: 15px;
-      color: #e9eef6;
+      color: #f3e8ff;
       font-weight: 500;
       margin-top: 18px;
       letter-spacing: 0.01em;
     }
-    .networks strong { color: #49f2c2; font-weight: 700; }
+    .networks strong { color: #ff8a00; font-weight: 700; }
     footer {
       text-align: center;
       padding: 18px 0 16px;
       font-size: 14px;
-      color: #bfc6cc;
+      color: #f3e8ff;
       background: transparent;
       letter-spacing: 0.01em;
       font-weight: 400;
     }
-    footer b { color: #49f2c2; font-weight: 600; }
+    footer b { color: #ff8a00; font-weight: 600; }
     @media (max-width: 520px) {
       .container { max-width: 98vw; padding: 22px 6vw 24px; }
       .logo { max-width: 70px; }
@@ -294,7 +294,7 @@
     </p>
   </div>
   <footer>
-    Powered by <b>ADCoin Validator</b> | Developed by <b>ADCX Lab</b> © 2025
+    Powered by <b>ADC Validator</b> | Developed by <b>ADCX Lab</b> © 2025
   </footer>
 </body>
 </html>
