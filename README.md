@@ -1,15 +1,15 @@
-# ADC CryptoGuard Validator – XRPL Security Framework  
+# ![ADC Cryptoguard Logo](static/ADC-Cryptoguard-logo.png)  
+# ADC Cryptoguard – Multi-Chain Wallet Security & Compliance Validator  
 
 [![Website](https://img.shields.io/badge/Website-AutoDigitalCoin.com-blue?logo=google-chrome)](https://autodigitalcoin.com)  
 [![Live Validator](https://img.shields.io/badge/Validator-LIVE-green?logo=vercel)](https://adcoin-validator-ai.onrender.com)  
 ![ISO 20022](https://img.shields.io/badge/ISO%2020022-Compliant-blueviolet)  
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Repo Size](https://img.shields.io/github/repo-size/ADCoinX/adcoin-validator-ai)  
-![Last Commit](https://img.shields.io/github/last-commit/ADCoinX/adcoin-validator-ai)  
-![Issues](https://img.shields.io/github/issues/ADCoinX/adcoin-validator-ai)  
-![Forks](https://img.shields.io/github/forks/ADCoinX/adcoin-validator-ai?style=social)  
-![Stars](https://img.shields.io/github/stars/ADCoinX/adcoin-validator-ai?style=social)  
-[![Applying XRPL Grants](https://img.shields.io/badge/Applying-XRPL%20Grants-blue)](https://xrpl.org/grants)  
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)  
+![Repo Size](https://img.shields.io/github/repo-size/ADCoinX/ADC-Cryptoguard)  
+![Last Commit](https://img.shields.io/github/last-commit/ADCoinX/ADC-Cryptoguard)  
+![Issues](https://img.shields.io/github/issues/ADCoinX/ADC-Cryptoguard)  
+![Forks](https://img.shields.io/github/forks/ADCoinX/ADC-Cryptoguard?style=social)  
+![Stars](https://img.shields.io/github/stars/ADCoinX/ADC-Cryptoguard?style=social)  
 ![Build](https://img.shields.io/badge/Build-Passing-brightgreen)  
 ![Tests](https://img.shields.io/badge/Tests-Covered-blue)  
 
@@ -17,283 +17,152 @@
 
 ## 📌 Project Overview  
 
-**ADC CryptoGuard Validator** is a **wallet security and compliance tool** built for the **XRP Ledger (XRPL)**.  
-It validates XRPL addresses, detects anomalies or scam activity, and generates **ISO 20022-compliant audit exports**.  
+**ADC Cryptoguard** is a **multi-chain wallet security and compliance validator**.  
+It validates blockchain addresses, detects anomalies or scam activity, and generates **ISO 20022-compliant audit exports** for banks, regulators, and enterprises.  
 
-👤 **Development Model:**  
-Built and maintained by ADCX Lab with lean execution, fast iteration, and open transparency. Funding will enable expansion into a small dedicated team (blockchain dev + frontend/mobile + AI/security).  
+👤 **Development Model**  
+Built and maintained by **ADCX Lab** with lean execution, rapid iteration, and transparent open-source governance.  
 
-**Objectives:**  
-- Protect XRPL users from scam & high-risk wallets  
+**Core Objectives:**  
+- Protect users from scam & high-risk wallets  
 - Provide audit-ready compliance reports (ISO 20022 XML)  
-- Deliver AI-powered wallet risk scoring with zero user data stored  
+- Deliver AI-powered risk scoring with zero user data stored  
+- Bridge **banks ↔ blockchain** through compliance-first design  
 
 ---
 
-## 🔎 XRPL Module (✅ Active)  
+## 🔎 Active Modules  
 
-- XRPL address validation (`r...`)  
-- AI-driven anomaly detection (suspicious flows, scam tags)  
-- Dynamic wallet **risk score (0–100)**  
-- **ISO 20022 XML export** for auditors  
-- Planned: XRP balance snapshot + RPC validator integration  
+- **XRPL Module (active):** address validation (`r...`), anomaly detection, risk scoring, ISO 20022 XML export  
+- **Hedera Module (HGuard):** account validation (`0.0.xxxx`), risk scoring, ISO 20022 XML export  
+- **Kadena Module (GuardianX – prototype):** wallet validation, API fallback, ISO export (stub)  
+- **Planned:** Arbitrum, Base, and other EVM-compatible chains  
+
+---
+
+## 🖥️ Live Deployments  
+
+- **XRPL Validator (ProetorX demo):** [Live](https://proetorx-xrpl.onrender.com) | [Repo](https://github.com/ADCoinX/ProetorX-xrpl)  
+- **Hedera Validator (HGuard):** [Repo](https://github.com/ADCoinX/Hguard-Hedera)  
+- **Kadena Validator (GuardianX):** [Repo](https://github.com/ADCoinX/GX-kadena)  
 
 ---
 
 ## 🗂️ Repository Structure  
 
-```
 core/            → AI risk engine, ISO exporter  
-integrations/    → XRPL-specific logic (validators, parsers)  
+integrations/    → Chain-specific logic (XRPL, Hedera, Kadena, EVM)  
 templates/       → Web frontend (HTML/CSS)  
 static/          → Assets (logo, styles)  
-```
 
 ---
 
 ## ⚙️ Technical Summary  
 
 - **Frontend:** HTML + CSS  
-- **Backend:** Python Flask  
-- **AI Risk Engine:** Local scoring (0–100, heuristics + anomaly rules)  
-- **Data Sources:** XRPL Public API + fallback endpoints  
-- **Compliance:** ISO 20022 XML via `iso_export.py`  
+- **Backend:** Python (Flask / FastAPI migration planned)  
+- **AI Risk Engine:** Hybrid scoring (heuristics + anomaly rules, 0–100 scale)  
+- **Data Sources:** Public RPCs & fallback explorers  
+- **Compliance:** ISO 20022 XML export via `iso_export.py`  
 
 ---
 
-## 🧩 System Design  
+## 🧩 System Architecture  
 
-```
-User (UI / API)
-   ↓
-Flask API (app.py)
-   ↓
-XRPL Public API (snapshot)
-   ↓
-AI Risk Engine (ai_risk.py)
-   ↓
-ISO Export (iso_export.py)
-   ↓
-JSON / ISO XML → Reviewer Dashboard
-```  
----
-## 🧩 System Architecture (Visual)
-
-```
-+------------------+        +--------------------+        +------------------+
-|   User / Client  | -----> |  Flask API Router  | -----> |  XRPL Public API |
-| (Web UI / cURL)  |        |  (app.py)          |        |  (snapshot data) |
-+------------------+        +--------------------+        +------------------+
-                                      |
-                                      v
-                            +---------------------+
-                            |   AI Risk Engine    |
-                            |   (ai_risk.py)      |
-                            |  Score: 0 – 100     |
-                            +---------------------+
-                                      |
-                                      v
-                            +---------------------+
-                            |   ISO Exporter      |
-                            |   (iso_export.py)   |
-                            |  ISO 20022 XML Out  |
-                            +---------------------+
-                                      |
-                                      v
-                        +-------------------------------+
-                        |  JSON API Response + XML File |
-                        |  Shown in Reviewer Dashboard  |
-                        +-------------------------------+
-```
----
-
-## 🚀 Upgrade Plan (Grant-Funded Enhancements)  
-
-If funded through **XRPL Grants**, ADC CryptoGuard will accelerate the following:  
-
-### 🔥 AI Risk Engine (Upgrade)  
-- ML anomaly detection (unsupervised clustering for scam patterns).  
-- Wallet-to-wallet graph analysis.  
-- Multi-metric scoring (age, tx diversity, liquidity anomalies, blacklist).  
-- Reviewer dashboard → **explainable AI**.  
-
-### 🔥 ISO 20022 Export (Upgrade)  
-- XRPL-specific ISO 20022 profiles (wallet + tx metadata).  
-- Multi-standard compliance (GDPR/PDPA).  
-- Enterprise-ready integration (SAP, Oracle).  
-- Automated XML download in dashboard.  
++——————+        +––––––––––+        +——————+  
+|   User / Client  | —–> |  API Router        | —–> |  Public RPC/API  |  
+| (Web UI / cURL)  |        |  (Flask/FastAPI)   |        |  (multi-chain)   |  
++——————+        +––––––––––+        +——————+  
+|  
+v  
++———————+  
+|   AI Risk Engine    |  
+|   (ai_risk.py)      |  
+|  Score: 0 – 100     |  
++———————+  
+|  
+v  
++———————+  
+|   ISO Exporter      |  
+|   (iso_export.py)   |  
+|  ISO 20022 XML Out  |  
++———————+  
+|  
+v  
++—————————––+  
+|  JSON API Response + XML File |  
+|  Reviewer / Compliance Output |  
++—————————––+  
 
 ---
 
-## 🛠️ API Endpoints (Sample)  
+## 🚀 Upgrade Plan  
 
-### Health Check
-```bash
-curl -X GET https://<backend-url>/healthz
-```
+### 🔥 AI Risk Engine  
+- ML anomaly detection (unsupervised clustering)  
+- Wallet-to-wallet graph analysis  
+- Multi-factor scoring (age, tx diversity, blacklist, anomalies)  
+- Reviewer dashboard → **explainable AI**  
 
-### XRPL Validation
-```bash
-curl -X POST https://<backend-url>/validate \
-  -H "Content-Type: application/json" \
-  -d '{"chain":"xrpl","address":"rEXAMPLE"}'
-```
-
-### ISO 20022 Export
-```bash
-curl -X POST https://<backend-url>/iso/export \
-  -H "Content-Type: application/json" \
-  -d '{"address":"rEXAMPLE"}'
-```
-
----
-## 🔐 Security & Threat Model
-
-At ADCX Lab, safety isn’t an afterthought — it’s built in from day one.  
-Even in the demo stage, we evaluate potential risks and mitigation paths.
-
-### 📊 Threat Matrix – CryptoGuard (XRPL)
-
-| Threat / Attack Vector        | Likelihood | Impact | Notes & Mitigation |
-|-------------------------------|------------|--------|---------------------|
-| **DDoS / API Spam**           | High       | Medium | Rate limiting, Cloudflare, fallback nodes |
-| **API Dependency Abuse**      | High       | Medium | Multiple API keys, caching, fallback APIs |
-| **Phishing / Clone Website**  | Medium     | High   | Official domain, SSL cert, verified links |
-| **XSS / Input Injection**     | Medium     | Medium | Strict input validation & sanitization |
-| **AI Risk Engine Bypass**     | Low/Med    | Medium | Hybrid rules + AI, manual blacklist |
-| **Blacklist Poisoning**       | Low/Med    | Low/Med| Moderated entries, hash verification |
-| **ISO 20022 Export Injection**| Low        | Medium | XML schema validation, sanitize input |
-| **Google Sheets Log Abuse**   | Medium     | Low/Med| Env-secured keys, migrate to DB w/ auth |
-
-### ⚖️ Summary
-- Highest risk (short-term): **DDoS / API spam** and **Phishing clones**  
-- Medium risk: **XSS, API dependency abuse, AI bypass**  
-- Lower risk: **ISO export injection, log poisoning**  
-- **Mitigation plan**: Rate limiting, SSL cert, schema validation, multi-API redundancy, DB migration
+### 🔥 ISO 20022 Export  
+- Chain-specific ISO 20022 profiles  
+- Multi-standard compliance (GDPR/PDPA)  
+- Enterprise-ready integration (SAP, Oracle, Temenos)  
+- Automated XML download in dashboard  
 
 ---
 
-## 🛡️ Security Roadmap (3–6 Months)
+## 🌍 Enterprise Global Use  
 
-To strengthen CryptoGuard beyond demo stage, we are implementing a phased roadmap:
+**Target Users:**  
+- Global banks & compliance teams → ISO 20022 bridging between blockchain & SWIFT/SEPA  
+- Regulators & auditors → automated XML reporting  
+- Exchanges & custodians → wallet risk scoring for onboarding/monitoring  
+- Enterprises adopting tokenization (RWA, CBDCs)  
 
-### 📅 Next 3 Months
-- 🚧 Rate limiting on API endpoints (Flask/Gunicorn + Cloudflare)
-- 🚧 Input sanitization & schema validation (JSON + ISO 20022 XML)
-- 🚧 Multi-API redundancy (Etherscan + fallback explorers)
-- 🚧 Basic monitoring & alerting (UptimeRobot / Prometheus)
-- 🚧 Domain verification & SSL enforcement (official ADCX domain)
+**Integration Examples:**  
+- Direct API → plug into exchange compliance stack  
+- Enterprise dashboards → real-time risk insights  
+- XML export → importable into **core banking systems** (SAP, Oracle, Avaloq)  
 
-### 📅 3–6 Months
-- 🔜 Migration from Google Sheets → secure database with authentication
-- 🔜 Centralized logging with anomaly alerts
-- 🔜 DDoS protection (Cloudflare / AWS Shield integration)
-- 🔜 Governance for community-driven blacklist (moderated entries)
-- 🔜 Security audit (internal + external review of core modules)
-
-### 🎯 Long-Term Vision
-- Enterprise-ready deployment with compliance certifications
-- Real-time monitoring dashboard for validators
-- Multi-chain threat intelligence integration (RWA, CBDCs, ISO/TC 307 alignment)
+**Global Alignment:**  
+- **ISO/TC 307** standards  
+- **EU MiCA** regulation  
+- **MAS (Singapore)**, **BNM (Malaysia)** regulatory pilots  
+- **SWIFT ISO 20022 migration** compatibility  
 
 ---
 
-## 🚀 Project Status – CryptoGuard (XRPL)
+## 💰 Monetization Strategy  
 
-**Live Demo:** https://adcoin-validator-ai.onrender.com  
-**Repository:** https://github.com/ADCoinX/adcoin-validator-ai  
+1. **Freemium SaaS/API**  
+   - Free tier → limited wallet validations  
+   - Paid tier → unlimited validations, ISO export, priority APIs  
 
-### ✅ Completed
-- Wallet validation via public APIs (XRPL Explorer, Etherscan, BlockCypher)
-- AI risk scoring engine (hybrid rule-based + scoring weights)
-- ISO 20022 XML export module
-- Google Sheets logging for traction tracking
-- Public demo deployment (Render.com)
+2. **Enterprise Licensing**  
+   - Annual contracts with banks, exchanges, custodians  
+   - White-label dashboards & private deployments  
 
-### 🚧 In Progress
-- Improve input sanitization for XML export
-- API fallback & caching to handle rate-limit issues
-- Basic monitoring for uptime / error logging
+3. **RegTech Partnerships**  
+   - Collaborations with auditors, compliance firms  
+   - Per-transaction or per-wallet validation fees  
 
-### 🔜 Planned
-- Rate limiting & DDoS protection (Cloudflare / API Gateway)
-- Domain verification + anti-phishing (official ADCX domain)
-- Migration from Google Sheets → secure DB (with authentication)
-- More chain integrations (multi-chain support beyond XRPL)
-
----
-
-## 💡 Use Cases  
-
-- **Compliance teams**: Generate ISO 20022 XML reports for audits.  
-- **Wallet providers**: Integrate scam wallet checks before transactions.  
-- **Exchanges**: Run anomaly detection to reduce fraud risk.  
-- **Developers**: Access validator via lightweight API.  
-
----
-
-## 📈 Roadmap (XRPL-Focused)  
-
-- **M1** → Enhanced heuristics for scam wallet detection  
-- **M2** → XRP balance + validator integration  
-- **M3** → ISO 20022 export finalized for XRPL  
-- **M4** → Reviewer dashboard (risk visualization + ISO download)  
-- **M5** → Mobile wallet checker (iOS/Android, XRPL only)  
-
----
-
-## 🤝 Contributor Guide  
-
-We welcome contributions from the community to strengthen **wallet safety on XRPL**.  
-
-**How to Contribute:**  
-1. Fork this repo & create a new branch (`feature/your-feature`).  
-2. Commit your changes with clear messages.  
-3. Open a Pull Request – describe what and why.  
-4. All contributions will be reviewed openly and transparently.  
-
-**Areas where help is valuable:**  
-- Improving AI heuristics & ML scoring  
-- Expanding ISO 20022 profiles  
-- Frontend/mobile UI contributions  
-- Documentation & testing  
-
----
-
-## Team & Governance
-
-**Core Team**
-- **Muhammad Yusri Adib — Founder / CTO**  
-  Focus: architecture, AI risk engine, XRPL integrations, ISO 20022 exporter.  
-  Commitment: Full-time.  
-  [LinkedIn](http://linkedin.com/in/yusri-adib-455aa8b7)
-
-- **Muhammad Mustafa, CPA, CFE, CMA, CIA — Co-Founder / Finance & Compliance Lead**  
-  Focus: governance, audit & reporting, budget control, regulatory alignment.  
-  Commitment: Full-time.  
-  [LinkedIn](http://linkedin.com/in/muhammad-mustafa-abdulmanaf)
-
-**Governance & Quality**
-- `main` branch is protected: peer reviews + CI checks required before merge.  
-- Secrets managed via GitHub Encrypted Secrets.  
-- No user data stored; validator is privacy-first.  
-- Vulnerability reporting per `SECURITY.md` — 72-hour SLA for high-severity issues.
-
-**Grant Use (XRPL-specific)**
-XRPL Grant funds will be applied **only to XRPL deliverables**, including:  
-1. Wallet validation heuristics for XRPL.  
-2. XRPL balance & transaction anomaly detection.  
-3. ISO 20022 schema tailored for XRPL.  
-4. QA, testing, and documentation for XRPL module.
+4. **Custom Integrations**  
+   - Tailored ISO 20022 mapping for specific jurisdictions  
+   - Consulting revenue from regulatory sandboxes  
 
 ---
 
 ## 🔐 Security & Infosec  
 
-**Quality & Assurance**  
-- [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
-- [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
-- [![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_adcoin-validator-ai&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_adcoin-validator-ai)  
+At **ADCX Lab**, security and compliance are built in from day one.  
+The validator is stateless, privacy-first, and designed to pass InfoSec due diligence.  
+
+### ✅ Quality & Assurance  
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
 
 **Principles:**  
 - No storage of keys or PII  
@@ -302,24 +171,56 @@ XRPL Grant funds will be applied **only to XRPL deliverables**, including:
 
 ---
 
+## 📈 Roadmap  
+
+- **M1** → Enhanced scam wallet heuristics  
+- **M2** → Multi-chain tx anomaly detection  
+- **M3** → ISO 20022 export (XRPL, Hedera, Kadena)  
+- **M4** → Reviewer dashboard (risk visualization + ISO export)  
+- **M5** → Mobile wallet checker (iOS/Android)  
+- **M6** → Enterprise deployment (SaaS/API, banking integrations)  
+
+---
+
+## 👥 Team & Governance  
+
+**Core Team**  
+- **Muhammad Yusri Adib — Founder / CTO**  
+  Focus: architecture, AI risk engine, ISO exporter, integrations  
+  Commitment: Full-time  
+  [LinkedIn](http://linkedin.com/in/muhammad-yusri-adib-455aa8b7)  
+
+- **Muhammad Mustafa, CPA, CFE, CMA, CIA — Finance & Compliance Lead**  
+  Focus: governance, audit & reporting, budget control, regulatory alignment  
+  Commitment: Full-time  
+  [LinkedIn](http://linkedin.com/in/muhammad-mustafa-abdulmanaf)  
+
+**Governance & Quality**  
+- `main` branch protected: peer reviews + CI checks  
+- Secrets managed via GitHub Encrypted Secrets  
+- No user data stored; validator is privacy-first  
+- Vulnerability reporting per `SECURITY.md` (72h SLA for high-severity issues)  
+
+---
+
 ## ⚠️ Disclaimer  
 
 This tool is for **educational, research, and compliance validation** only.  
 ADCX Lab does not provide financial, investment, or legal guarantees.  
-Code is open-sourced under MIT License; provided as-is with no warranties.
+Code is open-sourced under MIT License; provided as-is with no warranties.  
 
 ---
-## 📜 License
+
+## 📜 License  
 This project is open-sourced under the MIT License.  
-See the [LICENSE](./LICENSE) file for details.
+See the [LICENSE](./LICENSE) file for details.  
 
 ---
-
 
 ## 📞 Contact  
 
 👤 **Muhammad Yusri Adib**  
-Founder – ADCX Lab
+Founder – ADCX Lab  
 📩 Email: admin@autodigitalcoin.com  
 💬 Telegram: [@ADCoinhelpline](https://t.me/ADCoinhelpline)  
 🐦 Twitter: [@AdCoinMy](https://twitter.com/AdCoinMy)  
