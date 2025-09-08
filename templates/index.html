@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ADC CryptoGuard</title>
+  <title>ADC Cryptoguard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
@@ -28,7 +28,7 @@
     .logo {
       display: block;
       margin: 0 auto 22px;
-      max-width: 180px;
+      max-width: 200px;
       border-radius: 18px;
       box-shadow: 0 4px 32px #ff8a0033;
       transition: max-width 0.2s;
@@ -93,23 +93,68 @@
       font-weight: 500;
     }
     .result {
-      background: #471b52;
-      border-radius: 12px;
-      padding: 18px 18px 10px;
-      box-shadow: 0 2px 8px #9e1f6333;
-      margin-top: 10px;
-      color: #f3e8ff;
-      font-size: 1em;
+      background: #6a1b9a;
+      border-radius: 16px;
+      padding: 26px 20px 18px;
+      margin-top: 18px;
+      color: #fff;
+      font-size: 1.04em;
+      box-shadow: 0 3px 18px #9e1f6344;
+      text-align: left;
+      position: relative;
+      word-break: break-all;
     }
     .result strong {
       color: #ff8a00;
-    }
-    .result a {
-      color: #ff8a00;
-      text-decoration: none;
+      font-size: 1.05em;
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
-    .result a:hover { text-decoration: underline; color: #9e1f63; }
+    .result .wallet-row {
+      font-size: 1.15em;
+      color: #ff8a00;
+      font-weight: 700;
+      margin-bottom: 12px;
+      word-break: break-all;
+      letter-spacing: 0.02em;
+    }
+    .iso-btn-row {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-top: 18px;
+    }
+    .iso-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 22px;
+      background: linear-gradient(90deg,#ff8a00 0%,#9e1f63 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.09em;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px #ff8a0044;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.14s;
+      text-decoration: none;
+      margin-left: 0;
+      margin-right: 10px;
+    }
+    .iso-btn:hover {
+      background: linear-gradient(90deg,#9e1f63 0%,#ff8a00 100%);
+      color: #fff;
+      transform: translateY(-1px) scale(1.04);
+      box-shadow: 0 4px 16px #9e1f6344;
+      text-decoration: none;
+    }
+    .iso-btn svg {
+      width: 1.34em;
+      height: 1.34em;
+      vertical-align: middle;
+      fill: #fff;
+    }
     .transactions {
       margin-top: 26px;
     }
@@ -187,9 +232,12 @@
     footer b { color: #ff8a00; font-weight: 600; }
     @media (max-width: 520px) {
       .container { max-width: 98vw; padding: 22px 6vw 24px; }
-      .logo { max-width: 70px; }
+      .logo { max-width: 100px; }
       h1 { font-size: 1.5em; }
       .result-table th, .result-table td { padding: 7px 6px; font-size: 0.91em; }
+      .result { padding: 16px 8px 12px; }
+      .result .wallet-row { font-size: 0.98em; }
+      .iso-btn { padding: 10px 14px; font-size: 1em; }
     }
   </style>
 </head>
@@ -219,7 +267,9 @@
 
     {% if result and result.address %}
       <div class="result">
-        <p><strong>Wallet:</strong> {{ result.address }}</p>
+        <div class="wallet-row">
+          Wallet: {{ result.address }}
+        </div>
         <p><strong>Network:</strong> {{ result.network or "Unknown" }}</p>
         <p><strong>Balance:</strong> {{ result.balance or 0 }}</p>
         <p><strong>AI Risk Score:</strong> {{ result.ai_score or 0 }} / 100</p>
@@ -227,11 +277,12 @@
         <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
         <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
         {% if result.address and result.network != "Unknown" %}
-          <p>
-            <a href="{{ url_for('export_iso', wallet=result.address) }}" target="_blank" rel="noopener">
-              ⬇️ Export ISO 20022 (XML)
+          <div class="iso-btn-row">
+            <a href="{{ url_for('export_iso', wallet=result.address) }}" target="_blank" rel="noopener" class="iso-btn">
+              <svg viewBox="0 0 20 20"><path d="M13 10V3H7v7H3l7 7 7-7h-4zm-9 7h16v2H4v-2z"/></svg>
+              Export ISO 20022 (XML)
             </a>
-          </p>
+          </div>
         {% endif %}
       </div>
       {% if result.last5tx and result.last5tx|length > 0 %}
