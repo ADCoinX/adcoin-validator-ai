@@ -2,50 +2,206 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ADC CRYPTOGUARD</title>
+  <title>ADC Cryptoguard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    /* Minimal patch styles to replace deprecated attributes */
-    .result-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      background: #222;
-      color: #fff;
-      font-size: 90%;
-      border: 1px solid #333;
-      border-radius: 8px;
+    body {
+      background: linear-gradient(135deg, #20242a 0%, #2e3840 100%);
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      color: #e9eef6;
+      letter-spacing: 0.01em;
+    }
+    .container {
+      max-width: 440px;
+      margin: 40px auto 0;
+      background: rgba(34,38,44,0.98);
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 0 rgb(73 242 194 / 14%);
+      padding: 36px 32px 32px;
+      position: relative;
+      z-index: 2;
       overflow: hidden;
     }
-    .result-table th, .result-table td {
-      padding: 8px 10px; /* replaces cellpadding */
-      border-bottom: 1px solid #333;
+    .logo {
+      display: block;
+      margin: 0 auto 12px;
+      max-width: 90px;
+      border-radius: 16px;
+      box-shadow: 0 2px 18px #49f2c233;
     }
-    .result-table tr:last-child td { border-bottom: 0; }
+    h1 {
+      text-align: center;
+      font-weight: 700;
+      font-size: 2.1em;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #49f2c2 0%, #32cd32 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 22px;
+    }
+    form {
+      display: flex;
+      gap: 0;
+      margin-bottom: 18px;
+      background: #23272f;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 8px #49f2c233;
+    }
+    form input[type="text"] {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 1em;
+      outline: none;
+      letter-spacing: 0.02em;
+    }
+    form button {
+      padding: 0 22px;
+      background: linear-gradient(90deg, #49f2c2 0%, #32cd32 100%);
+      color: #21252a;
+      border: none;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.18s;
+      border-radius: 0 12px 12px 0;
+    }
+    form button:hover {
+      background: linear-gradient(90deg, #32cd32 0%, #49f2c2 100%);
+    }
     .flash-list {
       color: #ff6b6b;
       list-style: none;
       padding: 0;
-      margin: 10px 0;
+      margin: 12px 0;
       text-align: center;
+      font-weight: 500;
+      letter-spacing: 0.01em;
     }
-    .result a { color: #32cd32; text-decoration: none; }
+    .user-count {
+      color: #bfc6cc;
+      font-size: 14px;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .result {
+      background: #23272f;
+      border-radius: 12px;
+      padding: 18px 18px 10px;
+      box-shadow: 0 2px 8px #49f2c233;
+      margin-top: 10px;
+      color: #e9eef6;
+      font-size: 1em;
+    }
+    .result strong {
+      color: #49f2c2;
+    }
+    .result a {
+      color: #49f2c2;
+      text-decoration: none;
+      font-weight: 600;
+    }
     .result a:hover { text-decoration: underline; }
+    .transactions {
+      margin-top: 26px;
+    }
+    .transactions h4 {
+      font-size: 1.09em;
+      font-weight: 600;
+      color: #49f2c2;
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+    .result-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #23272f;
+      color: #fff;
+      font-size: 0.96em;
+      border: 1px solid #2e3840;
+      border-radius: 9px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px #49f2c233;
+    }
+    .result-table th, .result-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #2e3840;
+    }
+    .result-table tr:last-child td { border-bottom: 0; }
+    .result-table th {
+      background: #262a31;
+      color: #49f2c2;
+      font-weight: 500;
+      font-size: 0.97em;
+    }
+    .result-table a {
+      color: #49f2c2 !important;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .result-table a:hover {
+      text-decoration: underline;
+      color: #32cd32 !important;
+    }
+    #disclaimer {
+      margin-top: 14px;
+      font-size: 14px;
+      color: #bfc6cc;
+      text-align: center;
+      padding: 0 8px;
+    }
+    #disclaimer a {
+      color: #49f2c2;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+    #disclaimer a:hover { text-decoration: underline; color: #32cd32; }
+    .networks {
+      text-align: center;
+      font-size: 15px;
+      color: #e9eef6;
+      font-weight: 500;
+      margin-top: 18px;
+      letter-spacing: 0.01em;
+    }
+    .networks strong { color: #49f2c2; font-weight: 700; }
+    footer {
+      text-align: center;
+      padding: 18px 0 16px;
+      font-size: 14px;
+      color: #bfc6cc;
+      background: transparent;
+      letter-spacing: 0.01em;
+      font-weight: 400;
+    }
+    footer b { color: #49f2c2; font-weight: 600; }
+    @media (max-width: 520px) {
+      .container { max-width: 98vw; padding: 22px 6vw 24px; }
+      .logo { max-width: 70px; }
+      h1 { font-size: 1.5em; }
+      .result-table th, .result-table td { padding: 7px 6px; font-size: 0.91em; }
+    }
   </style>
 </head>
 <body>
-  <div class="overlay"></div>
   <div class="container">
-    <img src="{{ url_for('static', filename='adcoin_logo.png') }}" class="logo" alt="ADCOIN Logo" />
-    <h1>ADC CRYPTOGUARD</h1>
+    <img src="{{ url_for('static', filename='ADC-Cryptoguard-logo.png') }}" class="logo" alt="ADC Cryptoguard Logo" />
+    <h1>ADC Cryptoguard</h1>
 
     <form method="POST" action="/">
-      <input type="text" name="wallet" placeholder="Enter wallet address..." required />
+      <input type="text" name="wallet" placeholder="Enter wallet address..." required autocomplete="off" />
       <button type="submit">Validate Wallet</button>
     </form>
 
-    <!-- Flash messages for errors -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul class="flash-list">
@@ -56,10 +212,9 @@
       {% endif %}
     {% endwith %}
 
-    <!-- User count display -->
-    <p style="color:#aaa; font-size:14px; margin-top:8px;">
+    <div class="user-count">
       Total Users Validated: {{ user_count }}
-    </p>
+    </div>
 
     {% if result and result.address %}
       <div class="result">
@@ -70,7 +225,6 @@
         <p><strong>Risk Analysis:</strong> {{ result.reason or "N/A" }}</p>
         <p><strong>Wallet Age:</strong> {{ result.wallet_age or 0 }} days</p>
         <p><strong>Transaction Count:</strong> {{ result.tx_count or 0 }}</p>
-
         {% if result.address and result.network != "Unknown" %}
           <p>
             <a href="{{ url_for('export_iso', wallet=result.address) }}" target="_blank" rel="noopener">
@@ -79,9 +233,8 @@
           </p>
         {% endif %}
       </div>
-
       {% if result.last5tx and result.last5tx|length > 0 %}
-        <div class="transactions" style="margin-top:25px;">
+        <div class="transactions">
           <h4>Last 5 Transactions:</h4>
           <table class="result-table">
             <thead>
@@ -99,19 +252,19 @@
                   <td>
                     {% set short = (tx.hash or '')[:10] ~ '...' %}
                     {% if result.network == "Ethereum" %}
-                      <a href="https://etherscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://etherscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "TRON" %}
-                      <a href="https://tronscan.io/#/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://tronscan.io/#/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "Bitcoin" %}
-                      <a href="https://blockstream.info/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://blockstream.info/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "Solana" %}
-                      <a href="https://solscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://solscan.io/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "XRP" %}
-                      <a href="https://xrpscan.com/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://xrpscan.com/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "BASE" %}
-                      <a href="https://basescan.org/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://basescan.org/tx/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% elif result.network == "Hedera" %}
-                      <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener" style="color:#0af;">{{ short }}</a>
+                      <a href="https://hashscan.io/mainnet/transaction/{{ tx.hash|urlencode }}" target="_blank" rel="noopener">{{ short }}</a>
                     {% else %}
                       <span>{{ short }}</span>
                     {% endif %}
@@ -128,10 +281,10 @@
       {% endif %}
     {% endif %}
 
-    <p id="disclaimer" style="margin-top:10px;font-size:14px;color:#bfc6cc;text-align:center;">
+    <p id="disclaimer">
       ⚠️ Disclaimer: This tool is for informational purposes only. No sensitive data is stored.
       Results are based on public blockchain data — final decisions are the responsibility of the user.
-      <a href="https://autodigitalcoin.com/ADC-CryptoGuard-Disclaimer.pdf" target="_blank" rel="noopener" style="color:#49f2c2;text-decoration:none;">
+      <a href="https://autodigitalcoin.com/ADC-CryptoGuard-Disclaimer.pdf" target="_blank" rel="noopener">
         Full Disclaimer
       </a>
     </p>
@@ -140,8 +293,7 @@
       Supported Networks: <strong>BTC, ETH, BSC, XRP, TRON, SOL, BASE, Hedera</strong>
     </p>
   </div>
-
-  <footer style="text-align:center; padding:10px; font-size:14px; color:#ccc;">
+  <footer>
     Powered by <b>ADCoin Validator</b> | Developed by <b>ADCX Lab</b> © 2025
   </footer>
 </body>
