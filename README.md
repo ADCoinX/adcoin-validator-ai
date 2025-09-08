@@ -163,6 +163,9 @@ The validator is stateless, privacy-first, and designed to pass InfoSec due dili
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=bugs)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard)  
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ADCoinX_ADC-Cryptoguard&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=ADCoinX_ADC-Cryptoguard) 
 
 **Principles:**  
 - No storage of keys or PII  
